@@ -1,0 +1,53 @@
+#!/bin/bash
+set -e
+
+BASEDIR=`pwd`
+NUGET="mono ${BASEDIR}/nuget.exe"
+PACKAGESDIR=${BASEDIR}/local-packages
+
+curl -o nuget.exe https://dist.nuget.org/win-x86-commandline/v4.9.4/nuget.exe
+${NUGET} >/dev/null
+
+git clone https://github.com/dotnet/runtime
+pushd runtime
+git checkout 4822e3c3aa77eb82b2fb33c9321f923cf11ddde6
+git submodule init
+git submodule update
+popd
+
+git clone https://github.com/dotnet/roslyn
+pushd roslyn
+git checkout c7d6f9fab845ffd943216da465022744e7d35f22
+git submodule init
+git submodule update
+ln -s ../roslyn-patches patches
+quilt push -a
+popd
+
+git clone https://github.com/dotnet/sdk
+pushd sdk
+git checkout 2c798cbf6bf259ce49d94d91bc665a95d42d7a7f
+git submodule init
+git submodule update
+ln -s ../sdk-patches patches
+sed -e "s#@@PACKAGESDIR@@#${PACKAGESDIR}#" <patches/diff-sdk-hack-localrepo.in >patches/diff-sdk-hack-localrepo
+quilt push -a
+popd
+
+git clone https://github.com/dotnet/aspnetcore
+pushd aspnetcore
+git checkout ae1a6cbe225b99c0bf38b7e31bf60cb653b73a52
+git submodule init
+git submodule update
+popd
+
+git clone https://github.com/dotnet/installer
+pushd installer
+git checkout 9e8b04bbff820c93c142f99a507a46b976f5c14c
+git submodule init
+git submodule update
+ln -s ../installer-patches patches
+sed -e "s#@@PACKAGESDIR@@#${PACKAGESDIR}#" <patches/diff-installer-hack-localrepo.in >patches/diff-installer-hack-localrepo
+quilt push -a
+popd
+
