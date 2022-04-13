@@ -1,53 +1,44 @@
 #!/bin/bash
-set -e
+set -e -u -x
 
-BASEDIR=`pwd`
+BASEDIR=$(pwd)
 NUGET="mono ${BASEDIR}/nuget.exe"
 PACKAGESDIR=${BASEDIR}/local-packages
 
-curl -o nuget.exe https://dist.nuget.org/win-x86-commandline/v4.9.4/nuget.exe
+if [ ! -f nuget.exe ]; then
+	curl -o nuget.exe https://dist.nuget.org/win-x86-commandline/v4.9.4/nuget.exe
+fi
 ${NUGET} >/dev/null
 
-git clone https://github.com/dotnet/runtime
-pushd runtime
-git checkout 4822e3c3aa77eb82b2fb33c9321f923cf11ddde6
-git submodule init
-git submodule update
-popd
+prepare_repo() {
+	if [ -d "$1" ]; then
+		pushd "$1"
+		git fetch
+		git clean -dfx
+		git reset --hard
+	else
+		git clone "$2" "$1"
+		pushd "$1"
+	fi
+	git checkout -f "$3"
+	git submodule update --init --recursive
+	popd
+}
 
-git clone https://github.com/dotnet/roslyn
-pushd roslyn
-git checkout c7d6f9fab845ffd943216da465022744e7d35f22
-git submodule init
-git submodule update
-ln -s ../roslyn-patches patches
-quilt push -a
-popd
+prepare_repo runtime https://github.com/dotnet/runtime b8dc04b445fc98d24fd92262364a9e5b5e23a5b9
+prepare_repo roslyn https://github.com/dotnet/roslyn 9a3459303679328da9ccc529888e3c576ce3efec
+prepare_repo sdk https://github.com/dotnet/sdk 4d698d62f15af9bcd9e4f7b9e48ac2a9615761c7
+prepare_repo aspnetcore https://github.com/dotnet/aspnetcore a9508cb2eb002c028d86bf4b3755a1d0fa1258de
+prepare_repo installer https://github.com/dotnet/installer aba58321480d42a39621e0869aa75184c3b639fd
 
-git clone https://github.com/dotnet/sdk
 pushd sdk
-git checkout 2c798cbf6bf259ce49d94d91bc665a95d42d7a7f
-git submodule init
-git submodule update
-ln -s ../sdk-patches patches
+ln -fs ../sdk-patches patches
 sed -e "s#@@PACKAGESDIR@@#${PACKAGESDIR}#" <patches/diff-sdk-hack-localrepo.in >patches/diff-sdk-hack-localrepo
 quilt push -a
 popd
 
-git clone https://github.com/dotnet/aspnetcore
-pushd aspnetcore
-git checkout ae1a6cbe225b99c0bf38b7e31bf60cb653b73a52
-git submodule init
-git submodule update
-popd
-
-git clone https://github.com/dotnet/installer
 pushd installer
-git checkout 9e8b04bbff820c93c142f99a507a46b976f5c14c
-git submodule init
-git submodule update
-ln -s ../installer-patches patches
+ln -fs ../installer-patches patches
 sed -e "s#@@PACKAGESDIR@@#${PACKAGESDIR}#" <patches/diff-installer-hack-localrepo.in >patches/diff-installer-hack-localrepo
 quilt push -a
 popd
-

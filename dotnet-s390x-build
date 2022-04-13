@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -e -u -x
 
 BASEDIR=`pwd`
 NUGET="mono ${BASEDIR}/nuget.exe"
@@ -7,74 +7,103 @@ PACKAGESDIR=${BASEDIR}/local-packages
 DOWNLOADDIR=${BASEDIR}/local-downloads
 OUTPUTDIR=${BASEDIR}/output
 
-rm -rf ~/.nuget
-rm -rf ~/.local/share/NuGet/
-rm -rf ${PACKAGESDIR}
-mkdir ${PACKAGESDIR}
-rm -rf ${DOWNLOADDIR}
-mkdir ${DOWNLOADDIR}
-rm -rf ${OUTPUTDIR}
-mkdir ${OUTPUTDIR}
+if [[ -z ${SKIP_CLEAN+x} ]]; then
+	rm -rf ~/.nuget
+	rm -rf ~/.local/share/NuGet/
+	rm -rf ${PACKAGESDIR}
+	mkdir ${PACKAGESDIR}
+	rm -rf ${DOWNLOADDIR}
+	mkdir ${DOWNLOADDIR}
+	rm -rf ${OUTPUTDIR}
+	mkdir ${OUTPUTDIR}
+fi
 
 RUNTIME_CONF=Release
-RUNTIME_VERSION_PREFIX=6.0.0
-RUNTIME_VERSION_SUFFIX=rtm.21522.10
+RUNTIME_VERSION_PREFIX=7.0.0
+RUNTIME_VERSION_SUFFIX=dev
 RUNTIME_VERSION=${RUNTIME_VERSION_PREFIX}
+RUNTIME_VERSION_SHIPPING=${RUNTIME_VERSION_PREFIX}-${RUNTIME_VERSION_SUFFIX}
 RUNTIME_VERSION_NONSHIPPING=${RUNTIME_VERSION_PREFIX}-${RUNTIME_VERSION_SUFFIX}
 pushd runtime
-ROOTFS_DIR=/ ./build.sh -arch s390x -c ${RUNTIME_CONF} -cross -clang
-${NUGET} add artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Host.linux-s390x.${RUNTIME_VERSION}.nupkg -Source ${PACKAGESDIR}
-${NUGET} add artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Runtime.linux-s390x.${RUNTIME_VERSION}.nupkg -Source ${PACKAGESDIR}
-mkdir -p ${DOWNLOADDIR}/Runtime/${RUNTIME_VERSION_NONSHIPPING}
-cp artifacts/packages/${RUNTIME_CONF}/Shipping/dotnet-runtime-${RUNTIME_VERSION}-linux-s390x.tar.gz ${DOWNLOADDIR}/Runtime/${RUNTIME_VERSION_NONSHIPPING}
-cp artifacts/packages/${RUNTIME_CONF}/Shipping/dotnet-runtime-${RUNTIME_VERSION}-linux-s390x.tar.gz ${OUTPUTDIR}
-cp artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Host.linux-s390x.${RUNTIME_VERSION}.nupkg ${OUTPUTDIR}
-cp artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Runtime.linux-s390x.${RUNTIME_VERSION}.nupkg ${OUTPUTDIR}
-cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.DotNetHost.${RUNTIME_VERSION}.nupkg ${OUTPUTDIR}
-cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.DotNetHostPolicy.${RUNTIME_VERSION}.nupkg ${OUTPUTDIR}
-cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.DotNetHostResolver.${RUNTIME_VERSION}.nupkg ${OUTPUTDIR}
-cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.ILAsm.${RUNTIME_VERSION}.nupkg ${OUTPUTDIR}
-cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.ILDAsm.${RUNTIME_VERSION}.nupkg ${OUTPUTDIR}
+if [[ -z ${SKIP_BUILD_RUNTIME+x} ]]; then
+	ROOTFS_DIR=/ ./build.sh -arch s390x -c ${RUNTIME_CONF} -cross -clang
+fi
+if [[ -z ${SKIP_PACKAGE_RUNTIME+x} ]]; then
+	${NUGET} add artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Host.linux-s390x.${RUNTIME_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
+	${NUGET} add artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Runtime.linux-s390x.${RUNTIME_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
+	${NUGET} add artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Ref.${RUNTIME_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
+	mkdir -p ${DOWNLOADDIR}
+	cp artifacts/packages/${RUNTIME_CONF}/Shipping/dotnet-runtime-${RUNTIME_VERSION_SHIPPING}-linux-s390x.tar.gz ${DOWNLOADDIR}
+	cp artifacts/packages/${RUNTIME_CONF}/Shipping/dotnet-runtime-${RUNTIME_VERSION_SHIPPING}-linux-s390x.tar.gz ${OUTPUTDIR}
+	cp artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Host.linux-s390x.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+	cp artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Runtime.linux-s390x.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.DotNetHost.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.DotNetHostPolicy.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.DotNetHostResolver.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.ILAsm.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-s390x.Microsoft.NETCore.ILDAsm.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+fi
 popd
 
 pushd roslyn
-./eng/build.sh --restore --build --pack -c Release /p:VersionSuffix=6.21526.21
-for I in artifacts/packages/Release/*/*.nupkg; do ${NUGET} add $I -Source ${PACKAGESDIR}; done
+if [[ -z ${SKIP_BUILD_ROSLYN+x} ]]; then
+	./eng/build.sh --restore --build --pack -c Release /p:VersionSuffix=dev
+fi
+if [[ -z ${SKIP_PACKAGE_ROSLYN+x} ]]; then
+	for I in artifacts/packages/Release/*/*.nupkg; do ${NUGET} add $I -Source ${PACKAGESDIR}; done
+fi
 popd
 
 SDK_CONF=Release
-SDK_VERSION_PREFIX=6.0.100
-SDK_VERSION_SUFFIX=rtm.21527.8
+SDK_VERSION_PREFIX=7.0.100
+SDK_VERSION_SUFFIX=dev
 SDK_VERSION=${SDK_VERSION_PREFIX}-${SDK_VERSION_SUFFIX}
 pushd sdk
-./build.sh --pack -c ${SDK_CONF} /p:Architecture=s390x /p:VersionSuffix=${SDK_VERSION_SUFFIX}
-mkdir -p ${DOWNLOADDIR}/Sdk/${SDK_VERSION}
-cp artifacts/packages/Release/NonShipping/dotnet-toolset-internal-${SDK_VERSION}.zip ${DOWNLOADDIR}/Sdk/${SDK_VERSION}
+if [[ -z ${SKIP_BUILD_SDK+x} ]]; then
+	./build.sh --pack -c ${SDK_CONF} /p:Architecture=s390x /p:VersionSuffix=${SDK_VERSION_SUFFIX}
+fi
+if [[ -z ${SKIP_PACKAGE_SDK+x} ]]; then
+	mkdir -p ${DOWNLOADDIR}
+	cp artifacts/packages/Release/NonShipping/dotnet-toolset-internal-${SDK_VERSION}.zip ${DOWNLOADDIR}
+fi
 popd
 
 ASPNETCORE_CONF=Release
-ASPNETCORE_VERSION_PREFIX=6.0.0
-ASPNETCORE_VERSION_SUFFIX=rtm.21526.8
+ASPNETCORE_VERSION_PREFIX=7.0.0
+ASPNETCORE_VERSION_SUFFIX=dev
 ASPNETCORE_VERSION=${ASPNETCORE_VERSION_PREFIX}
+ASPNETCORE_VERSION_SHIPPING=${ASPNETCORE_VERSION_PREFIX}-${ASPNETCORE_VERSION_SUFFIX}
 ASPNETCORE_VERSION_NONSHIPPING=${ASPNETCORE_VERSION_PREFIX}-${ASPNETCORE_VERSION_SUFFIX}
 pushd aspnetcore
-# Run build script multiple times to work around yarn race condition
-./eng/build.sh -arch s390x -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ || { sleep 30 ; \
-./eng/build.sh -arch s390x -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ || { sleep 30 ; \
-./eng/build.sh -arch s390x -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ ; } }
-${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Runtime.linux-s390x.${ASPNETCORE_VERSION}.nupkg -Source ${PACKAGESDIR}
-mkdir -p ${DOWNLOADDIR}/aspnetcore/Runtime/${ASPNETCORE_VERSION_NONSHIPPING}
-cp artifacts/installers/${ASPNETCORE_CONF}/aspnetcore-runtime-internal-${ASPNETCORE_VERSION}-linux-s390x.tar.gz ${DOWNLOADDIR}/aspnetcore/Runtime/${ASPNETCORE_VERSION_NONSHIPPING}
-cp artifacts/installers/${ASPNETCORE_CONF}/aspnetcore_base_runtime.version ${DOWNLOADDIR}/aspnetcore/Runtime/${ASPNETCORE_VERSION_NONSHIPPING}
-cp artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Runtime.linux-s390x.${ASPNETCORE_VERSION}.nupkg ${OUTPUTDIR}
+if [[ -z ${SKIP_BUILD_ASPNETCORE+x} ]]; then
+	# Run build script multiple times to work around yarn race condition
+	./eng/build.sh -arch s390x -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-s390x.tar.gz || { sleep 30 ; \
+	./eng/build.sh -arch s390x -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-s390x.tar.gz || { sleep 30 ; \
+	./eng/build.sh -arch s390x -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-s390x.tar.gz ; } }
+fi
+if [[ -z ${SKIP_PACKAGE_ASPNETCORE+x} ]]; then
+	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Runtime.linux-s390x.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
+	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Ref.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
+	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.DotNet.Web.ItemTemplates.7.0.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
+	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.DotNet.Web.ProjectTemplates.7.0.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
+	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.7.0.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
+	mkdir -p ${DOWNLOADDIR}
+	cp artifacts/installers/${ASPNETCORE_CONF}/aspnetcore-runtime-internal-${ASPNETCORE_VERSION_SHIPPING}-linux-s390x.tar.gz ${DOWNLOADDIR}
+	cp artifacts/installers/${ASPNETCORE_CONF}/aspnetcore_base_runtime.version ${DOWNLOADDIR}
+	cp artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Runtime.linux-s390x.${ASPNETCORE_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+fi
 popd
 
 INSTALLER_CONF=Release
-INSTALLER_VERSION=6.0.100
+INSTALLER_VERSION=7.0.100-dev
 pushd installer
-rm -rf artifacts
-# Setting HostRid to linux- instead of ubuntu- avoids requiring Debian installer packages
-./build.sh -c ${INSTALLER_CONF} /p:HostRid=linux-x64 /p:Architecture=s390x /p:CoreSetupBlobRootUrl=file://${DOWNLOADDIR}/ /p:DotnetToolsetBlobRootUrl=file://${DOWNLOADDIR}/
-cp artifacts/packages/${INSTALLER_CONF}/Shipping/dotnet-sdk-${INSTALLER_VERSION}-linux-s390x.tar.gz ${OUTPUTDIR}
+if [[ -z ${SKIP_BUILD_INSTALLER+x} ]]; then
+	rm -rf artifacts
+	# Setting HostRid to linux- instead of ubuntu- avoids requiring Debian installer packages
+	./build.sh -c ${INSTALLER_CONF} /p:HostRid=linux-x64 /p:Architecture=s390x /p:PublicBaseURL=file://${DOWNLOADDIR}/ /p:DotNetBuildFromSource=true /p:DotNetBuildOffline=true /p:MicrosoftNETCoreAppRuntimePackageVersion=7.0.0-dev /p:MicrosoftDotnetToolsetInternalPackageVersion=7.0.100-dev /p:MicrosoftAspNetCoreAppRuntimePackageVersion=7.0.0-dev /p:MicrosoftNETCoreAppRefPackageVersion=7.0.0-dev /p:MonoWorkloadManifestVersion=7.0.0-preview.4.22208.8 /p:MicrosoftAspNetCoreAppRefPackageVersion=7.0.0-dev /p:MicrosoftNETCoreAppHostPackageVersion=7.0.0-dev
+fi
+if [[ -z ${SKIP_PACKAGE_INSTALLER+x} ]]; then
+	cp artifacts/packages/${INSTALLER_CONF}/Shipping/dotnet-sdk-${INSTALLER_VERSION}-linux-s390x.tar.gz ${OUTPUTDIR}
+fi
 popd
 
