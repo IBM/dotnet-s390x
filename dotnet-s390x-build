@@ -26,6 +26,7 @@ RUNTIME_VERSION_SUFFIX=dev
 RUNTIME_VERSION=${RUNTIME_VERSION_PREFIX}
 RUNTIME_VERSION_SHIPPING=${RUNTIME_VERSION_PREFIX}-${RUNTIME_VERSION_SUFFIX}
 RUNTIME_VERSION_NONSHIPPING=${RUNTIME_VERSION_PREFIX}-${RUNTIME_VERSION_SUFFIX}
+RUNTIME_TGZ=${DOWNLOADDIR}/dotnet-runtime-${RUNTIME_VERSION_SHIPPING}-linux-${ARCH}.tar.gz
 pushd runtime
 if [[ -z ${SKIP_BUILD_RUNTIME+x} ]]; then
 	ROOTFS_DIR=/ ./build.sh $(${CROSS} && echo -arch ${ARCH} -cross) -c ${RUNTIME_CONF} -clang
@@ -79,9 +80,9 @@ ASPNETCORE_VERSION_NONSHIPPING=${ASPNETCORE_VERSION_PREFIX}-${ASPNETCORE_VERSION
 pushd aspnetcore
 if [[ -z ${SKIP_BUILD_ASPNETCORE+x} ]]; then
 	# Run build script multiple times to work around yarn race condition
-	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-${ARCH}.tar.gz || { sleep 30 ; \
-	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-${ARCH}.tar.gz || { sleep 30 ; \
-	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-${ARCH}.tar.gz ; } }
+	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${RUNTIME_TGZ} || { sleep 30 ; \
+	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${RUNTIME_TGZ} || { sleep 30 ; \
+	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${RUNTIME_TGZ} ; } }
 fi
 if [[ -z ${SKIP_PACKAGE_ASPNETCORE+x} ]]; then
 	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Runtime.linux-${ARCH}.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
