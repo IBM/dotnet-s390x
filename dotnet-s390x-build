@@ -19,6 +19,7 @@ if [[ -z ${SKIP_CLEAN+x} ]]; then
 fi
 
 ARCH=s390x
+CROSS=true
 RUNTIME_CONF=Release
 RUNTIME_VERSION_PREFIX=7.0.0
 RUNTIME_VERSION_SUFFIX=dev
@@ -27,7 +28,7 @@ RUNTIME_VERSION_SHIPPING=${RUNTIME_VERSION_PREFIX}-${RUNTIME_VERSION_SUFFIX}
 RUNTIME_VERSION_NONSHIPPING=${RUNTIME_VERSION_PREFIX}-${RUNTIME_VERSION_SUFFIX}
 pushd runtime
 if [[ -z ${SKIP_BUILD_RUNTIME+x} ]]; then
-	ROOTFS_DIR=/ ./build.sh -arch ${ARCH} -c ${RUNTIME_CONF} -cross -clang
+	ROOTFS_DIR=/ ./build.sh $(${CROSS} && echo -arch ${ARCH} -cross) -c ${RUNTIME_CONF} -clang
 fi
 if [[ -z ${SKIP_PACKAGE_RUNTIME+x} ]]; then
 	${NUGET} add artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Host.linux-${ARCH}.${RUNTIME_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
@@ -78,9 +79,9 @@ ASPNETCORE_VERSION_NONSHIPPING=${ASPNETCORE_VERSION_PREFIX}-${ASPNETCORE_VERSION
 pushd aspnetcore
 if [[ -z ${SKIP_BUILD_ASPNETCORE+x} ]]; then
 	# Run build script multiple times to work around yarn race condition
-	./eng/build.sh -arch ${ARCH} -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-${ARCH}.tar.gz || { sleep 30 ; \
-	./eng/build.sh -arch ${ARCH} -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-${ARCH}.tar.gz || { sleep 30 ; \
-	./eng/build.sh -arch ${ARCH} -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-${ARCH}.tar.gz ; } }
+	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-${ARCH}.tar.gz || { sleep 30 ; \
+	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-${ARCH}.tar.gz || { sleep 30 ; \
+	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${DOWNLOADDIR}/dotnet-runtime-7.0.0-dev-linux-${ARCH}.tar.gz ; } }
 fi
 if [[ -z ${SKIP_PACKAGE_ASPNETCORE+x} ]]; then
 	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Runtime.linux-${ARCH}.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
