@@ -31,6 +31,11 @@ prepare_repo sdk https://github.com/dotnet/sdk 4d698d62f15af9bcd9e4f7b9e48ac2a96
 prepare_repo aspnetcore https://github.com/dotnet/aspnetcore a9508cb2eb002c028d86bf4b3755a1d0fa1258de
 prepare_repo installer https://github.com/dotnet/installer aba58321480d42a39621e0869aa75184c3b639fd
 
+pushd runtime
+git fetch https://github.com/iii-i/runtime.git 68266
+git cherry-pick --allow-empty FETCH_HEAD
+popd
+
 pushd sdk
 ln -fs ../sdk-patches patches
 sed -e "s#@@PACKAGESDIR@@#${PACKAGESDIR}#" <patches/diff-sdk-hack-localrepo.in >patches/diff-sdk-hack-localrepo
