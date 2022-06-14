@@ -25,11 +25,11 @@ prepare_repo() {
 	popd
 }
 
-prepare_repo runtime https://github.com/dotnet/runtime b8dc04b445fc98d24fd92262364a9e5b5e23a5b9
-prepare_repo roslyn https://github.com/dotnet/roslyn 9a3459303679328da9ccc529888e3c576ce3efec
-prepare_repo sdk https://github.com/dotnet/sdk 4d698d62f15af9bcd9e4f7b9e48ac2a9615761c7
-prepare_repo aspnetcore https://github.com/dotnet/aspnetcore a9508cb2eb002c028d86bf4b3755a1d0fa1258de
-prepare_repo installer https://github.com/dotnet/installer aba58321480d42a39621e0869aa75184c3b639fd
+prepare_repo runtime https://github.com/dotnet/runtime 5c5e66e6c067f8a82d514598575011cd21655ffb
+prepare_repo roslyn https://github.com/dotnet/roslyn 069a85a786acae3be2c7b49e330b7f968a624c88
+prepare_repo sdk https://github.com/dotnet/sdk 097c9203c352def8e5fe6ad6b73ae7cef37b97da
+prepare_repo aspnetcore https://github.com/dotnet/aspnetcore da6cdcbd5dc75b695cee36d47a22e1399cbea89e
+prepare_repo installer https://github.com/dotnet/installer 693b8eb2cc0a177a3466864f8e65ad45037894c5
 
 pushd runtime
 git fetch https://github.com/iii-i/runtime.git 68266
