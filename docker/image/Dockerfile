@@ -20,6 +20,7 @@ RUN dpkg --add-architecture s390x && \
         liblttng-ust0 \
         libssl-dev:s390x \
         libstdc++-10-dev-s390x-cross \
+        libxml2-utils \
         llvm \
         locales \
         lttng-modules-dkms \

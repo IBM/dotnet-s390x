@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e -u -x
+cd "$(dirname "$0")"
+git submodule update --init --recursive
+cd installer
+git fetch
+git checkout origin/main
+repos=(
+    runtime:Microsoft.NETCore.App.Ref
+    roslyn:Microsoft.Net.Compilers.Toolset
+    sdk:Microsoft.NET.Sdk
+    aspnetcore:Microsoft.AspNetCore.App.Ref
+)
+for repo in "${repos[@]}"; do
+    IFS=: read -r -a path_name <<< "$repo"
+    cd ../"${path_name[0]}"
+    git fetch
+    xpath="/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[1]}\"]/Sha/text()"
+    sha=$(xmllint --xpath "$xpath" ../installer/eng/Version.Details.xml)
+    git checkout "$sha"
+done
