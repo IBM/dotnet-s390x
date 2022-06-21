@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e -u -x
+basedir=$(cd "$(dirname "$0")"/.. && pwd)
+workdir=$(mktemp -d)
+trap 'rm -r "$workdir"' EXIT
+iidfile=$workdir/iid
+docker build --iidfile="$iidfile" "$basedir"/docker/image
+iid=$(cat "$iidfile")
+exec docker run \
+    --env=HOME="$HOME" \
+    --interactive \
+    --rm \
+    --tty \
+    --ulimit=nofile=16384 \
+    --user="$(id -u):$(id -g)" \
+    --volume="$basedir:$basedir:z" \
+    --volume="$HOME:$HOME:z" \
+    --workdir="$basedir" \
+    "$iid" \
+    "$@"

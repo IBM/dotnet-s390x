@@ -1,0 +1,8 @@
+deb [arch=amd64] http://de.archive.ubuntu.com/ubuntu focal main universe
+deb [arch=amd64] http://de.archive.ubuntu.com/ubuntu focal-security main universe
+deb [arch=amd64] http://de.archive.ubuntu.com/ubuntu focal-updates main universe
+deb [arch=amd64] http://de.archive.ubuntu.com/ubuntu focal-backports main universe
+deb [arch=s390x] http://ports.ubuntu.com/ubuntu-ports/ focal main universe
+deb [arch=s390x] http://ports.ubuntu.com/ubuntu-ports/ focal-security main universe
+deb [arch=s390x] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main universe
+deb [arch=s390x] http://ports.ubuntu.com/ubuntu-ports/ focal-backports main universe
