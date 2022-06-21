@@ -1,0 +1,15 @@
+[submodule "aspnetcore"]
+	path = aspnetcore
+	url = https://github.com/dotnet/aspnetcore
+[submodule "installer"]
+	path = installer
+	url = https://github.com/dotnet/installer
+[submodule "sdk"]
+	path = sdk
+	url = https://github.com/dotnet/sdk
+[submodule "roslyn"]
+	path = roslyn
+	url = https://github.com/dotnet/roslyn
+[submodule "runtime"]
+	path = runtime
+	url = https://github.com/dotnet/runtime

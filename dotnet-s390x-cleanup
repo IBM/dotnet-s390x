@@ -1,16 +1,5 @@
 #!/bin/bash
-set -e
-
-rm -rf nuget.exe
-rm -rf local-packages
-rm -rf local-downloads
-rm -rf output
-
-rm -rf *-patches/diff-*-hack-localrepo
-
-rm -rf runtime
-rm -rf roslyn
-rm -rf sdk
-rm -rf aspnetcore
-rm -rf installer
-
+set -e -u x
+cd "$(dirname "$0")"
+git clean -dfx
+git submodule foreach --recursive 'git clean -dfx && git reset --hard'
