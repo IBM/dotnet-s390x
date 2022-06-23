@@ -5,6 +5,15 @@ BASEDIR=$(pwd)
 NUGET="mono ${BASEDIR}/nuget.exe"
 PACKAGESDIR=${BASEDIR}/local-packages
 
+function update_nuget_config {
+    gawk -f - -i inplace NuGet.config <<EOF
+    { print }
+    /<packageSources>/ { Src = 1 }
+    /<\/packageSources>/ { Src = 0 }
+    /<clear \/>/ { if (Src) print "    <add key=\"local\" value=\"${PACKAGESDIR}\" />" }
+EOF
+}
+
 if [ ! -f nuget.exe ]; then
 	curl -o nuget.exe https://dist.nuget.org/win-x86-commandline/v4.9.4/nuget.exe
 fi
@@ -22,13 +31,9 @@ git cherry-pick --allow-empty 486a4599f4a5  # https://github.com/dotnet/msbuild/
 popd
 
 pushd sdk
-ln -fs ../sdk-patches patches
-sed -e "s#@@PACKAGESDIR@@#${PACKAGESDIR}#" <patches/diff-sdk-hack-localrepo.in >patches/diff-sdk-hack-localrepo
-quilt push -a
+update_nuget_config
 popd
 
 pushd installer
-ln -fs ../installer-patches patches
-sed -e "s#@@PACKAGESDIR@@#${PACKAGESDIR}#" <patches/diff-installer-hack-localrepo.in >patches/diff-installer-hack-localrepo
-quilt push -a
+update_nuget_config
 popd

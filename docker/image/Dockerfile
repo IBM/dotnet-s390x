@@ -12,6 +12,7 @@ RUN dpkg --add-architecture s390x && \
         binutils-s390x-linux-gnu \
         clang \
         cmake \
+        gawk \
         git \
         libgcc-10-dev-s390x-cross \
         libicu-dev:s390x \
