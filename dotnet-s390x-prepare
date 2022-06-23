@@ -17,6 +17,10 @@ git fetch https://github.com/iii-i/runtime.git 68266
 git cherry-pick --allow-empty FETCH_HEAD
 popd
 
+pushd msbuild
+git cherry-pick --allow-empty 486a4599f4a5  # https://github.com/dotnet/msbuild/pull/7731
+popd
+
 pushd sdk
 ln -fs ../sdk-patches patches
 sed -e "s#@@PACKAGESDIR@@#${PACKAGESDIR}#" <patches/diff-sdk-hack-localrepo.in >patches/diff-sdk-hack-localrepo
