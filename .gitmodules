@@ -13,3 +13,6 @@
 [submodule "runtime"]
 	path = runtime
 	url = https://github.com/dotnet/runtime
+[submodule "msbuild"]
+	path = msbuild
+	url = https://github.com/dotnet/msbuild
