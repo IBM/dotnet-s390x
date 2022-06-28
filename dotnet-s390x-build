@@ -1,103 +1,102 @@
 #!/bin/bash
 set -e -u -x
 
-BASEDIR=`pwd`
-NUGET="mono ${BASEDIR}/nuget.exe"
-PACKAGESDIR=${BASEDIR}/local-packages
-DOWNLOADDIR=${BASEDIR}/local-downloads
-OUTPUTDIR=${BASEDIR}/output
+pushd "$(dirname "$0")"
+. dotnet-s390x-versions
+popd
+
+BASEDIR=$(pwd)
+NUGET="mono $BASEDIR/nuget.exe"
+PACKAGESDIR=$BASEDIR/local-packages
+DOWNLOADDIR=$BASEDIR/local-downloads
+OUTPUTDIR=$BASEDIR/output
 
 if [[ -z ${SKIP_CLEAN+x} ]]; then
 	rm -rf ~/.nuget
 	rm -rf ~/.local/share/NuGet/
-	rm -rf ${PACKAGESDIR}
-	mkdir ${PACKAGESDIR}
-	rm -rf ${DOWNLOADDIR}
-	mkdir ${DOWNLOADDIR}
-	rm -rf ${OUTPUTDIR}
-	mkdir ${OUTPUTDIR}
+	rm -rf "$PACKAGESDIR"
+	mkdir "$PACKAGESDIR"
+	rm -rf "$DOWNLOADDIR"
+	mkdir "$DOWNLOADDIR"
+	rm -rf "$OUTPUTDIR"
+	mkdir "$OUTPUTDIR"
 fi
 
 ARCH=s390x
 CROSS=true
 RUNTIME_CONF=Release
-RUNTIME_VERSION_PREFIX=7.0.0
-RUNTIME_VERSION_SUFFIX=dev
-RUNTIME_VERSION=${RUNTIME_VERSION_PREFIX}
-RUNTIME_VERSION_SHIPPING=${RUNTIME_VERSION_PREFIX}-${RUNTIME_VERSION_SUFFIX}
-RUNTIME_VERSION_NONSHIPPING=${RUNTIME_VERSION_PREFIX}-${RUNTIME_VERSION_SUFFIX}
-RUNTIME_TGZ=${DOWNLOADDIR}/dotnet-runtime-${RUNTIME_VERSION_SHIPPING}-linux-${ARCH}.tar.gz
+runtime_version=$runtime_version_prefix-$runtime_version_suffix
 pushd runtime
 if [[ -z ${SKIP_BUILD_RUNTIME+x} ]]; then
-	ROOTFS_DIR=/ ./build.sh $(${CROSS} && echo -arch ${ARCH} -cross) -c ${RUNTIME_CONF} -clang
+	# shellcheck disable=SC2046
+	ROOTFS_DIR=/ ./build.sh $($CROSS && echo -arch "$ARCH" -cross) -c "$RUNTIME_CONF" -clang /p:VersionPrefix="$runtime_version_prefix" /p:VersionSuffix="$runtime_version_suffix"
 fi
 if [[ -z ${SKIP_PACKAGE_RUNTIME+x} ]]; then
-	${NUGET} add artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Host.linux-${ARCH}.${RUNTIME_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
-	${NUGET} add artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Runtime.linux-${ARCH}.${RUNTIME_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
-	${NUGET} add artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Ref.${RUNTIME_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
-	mkdir -p ${DOWNLOADDIR}
-	cp artifacts/packages/${RUNTIME_CONF}/Shipping/dotnet-runtime-${RUNTIME_VERSION_SHIPPING}-linux-${ARCH}.tar.gz ${DOWNLOADDIR}
-	cp artifacts/packages/${RUNTIME_CONF}/Shipping/dotnet-runtime-${RUNTIME_VERSION_SHIPPING}-linux-${ARCH}.tar.gz ${OUTPUTDIR}
-	cp artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Host.linux-${ARCH}.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
-	cp artifacts/packages/${RUNTIME_CONF}/Shipping/Microsoft.NETCore.App.Runtime.linux-${ARCH}.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
-	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-${ARCH}.Microsoft.NETCore.DotNetHost.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
-	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-${ARCH}.Microsoft.NETCore.DotNetHostPolicy.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
-	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-${ARCH}.Microsoft.NETCore.DotNetHostResolver.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
-	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-${ARCH}.Microsoft.NETCore.ILAsm.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
-	cp artifacts/packages/${RUNTIME_CONF}/Shipping/runtime.linux-${ARCH}.Microsoft.NETCore.ILDAsm.${RUNTIME_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+	$NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" -Source "$PACKAGESDIR"
+	$NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" -Source "$PACKAGESDIR"
+	$NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Ref.$runtime_version.nupkg" -Source "$PACKAGESDIR"
+	mkdir -p "$DOWNLOADDIR/Runtime/$runtime_version"
+	cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$DOWNLOADDIR/Runtime/$runtime_version"
+	cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$OUTPUTDIR"
+	cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
+	cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
+	cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHost.$runtime_version.nupkg" "$OUTPUTDIR"
+	cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostPolicy.$runtime_version.nupkg" "$OUTPUTDIR"
+	cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostResolver.$runtime_version.nupkg" "$OUTPUTDIR"
+	cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version.nupkg" "$OUTPUTDIR"
+	cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version.nupkg" "$OUTPUTDIR"
 fi
 popd
 
 SDK_CONF=Release
-SDK_VERSION_PREFIX=7.0.100
-SDK_VERSION_SUFFIX=dev
-SDK_VERSION=${SDK_VERSION_PREFIX}-${SDK_VERSION_SUFFIX}
+SDK_VERSION=$sdk_version_prefix-$sdk_version_suffix
 pushd sdk
 if [[ -z ${SKIP_BUILD_SDK+x} ]]; then
-	./build.sh --pack -c ${SDK_CONF} /p:Architecture=${ARCH} /p:VersionSuffix=${SDK_VERSION_SUFFIX}
+	./build.sh --pack -c "$SDK_CONF" /p:Architecture="$ARCH" /p:VersionPrefix="$sdk_version_prefix" /p:VersionSuffix="$sdk_version_suffix"
 fi
 if [[ -z ${SKIP_PACKAGE_SDK+x} ]]; then
-	mkdir -p ${DOWNLOADDIR}
-	cp artifacts/packages/Release/NonShipping/dotnet-toolset-internal-${SDK_VERSION}.zip ${DOWNLOADDIR}
+	mkdir -p "$DOWNLOADDIR/Sdk/$SDK_VERSION"
+	cp "artifacts/packages/Release/NonShipping/dotnet-toolset-internal-$SDK_VERSION.zip" "$DOWNLOADDIR/Sdk/$SDK_VERSION"
 fi
 popd
 
 ASPNETCORE_CONF=Release
-ASPNETCORE_VERSION_PREFIX=7.0.0
-ASPNETCORE_VERSION_SUFFIX=dev
-ASPNETCORE_VERSION=${ASPNETCORE_VERSION_PREFIX}
-ASPNETCORE_VERSION_SHIPPING=${ASPNETCORE_VERSION_PREFIX}-${ASPNETCORE_VERSION_SUFFIX}
-ASPNETCORE_VERSION_NONSHIPPING=${ASPNETCORE_VERSION_PREFIX}-${ASPNETCORE_VERSION_SUFFIX}
+ASPNETCORE_VERSION=$aspnetcore_version_prefix-$aspnetcore_version_suffix
 pushd aspnetcore
 if [[ -z ${SKIP_BUILD_ASPNETCORE+x} ]]; then
 	# Run build script multiple times to work around yarn race condition
-	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${RUNTIME_TGZ} || { sleep 30 ; \
-	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${RUNTIME_TGZ} || { sleep 30 ; \
-	./eng/build.sh $(${CROSS} && echo -arch ${ARCH}) -c ${ASPNETCORE_CONF} --pack /p:DotNetAssetRootUrl=file://${DOWNLOADDIR}/ /p:DotNetRuntimeDownloadUrl=file://${RUNTIME_TGZ} ; } }
+	for i in $(seq 1 3); do
+		# shellcheck disable=SC2046
+		if ./eng/build.sh $("$CROSS" && echo -arch "$ARCH") -c "$ASPNETCORE_CONF" --pack /p:VersionPrefix="$aspnetcore_version_prefix" /p:VersionSuffix="$aspnetcore_version_suffix" /p:DotNetAssetRootUrl="file://$DOWNLOADDIR/"; then
+			break
+		fi
+		if [ "$i" -eq 3 ]; then
+			exit 1
+		fi
+	done
 fi
 if [[ -z ${SKIP_PACKAGE_ASPNETCORE+x} ]]; then
-	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Runtime.linux-${ARCH}.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
-	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Ref.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
-	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.DotNet.Web.ItemTemplates.7.0.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
-	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.DotNet.Web.ProjectTemplates.7.0.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
-	${NUGET} add artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.7.0.${ASPNETCORE_VERSION_SHIPPING}.nupkg -Source ${PACKAGESDIR}
-	mkdir -p ${DOWNLOADDIR}
-	cp artifacts/installers/${ASPNETCORE_CONF}/aspnetcore-runtime-internal-${ASPNETCORE_VERSION_SHIPPING}-linux-${ARCH}.tar.gz ${DOWNLOADDIR}
-	cp artifacts/installers/${ASPNETCORE_CONF}/aspnetcore_base_runtime.version ${DOWNLOADDIR}
-	cp artifacts/packages/${ASPNETCORE_CONF}/Shipping/Microsoft.AspNetCore.App.Runtime.linux-${ARCH}.${ASPNETCORE_VERSION_SHIPPING}.nupkg ${OUTPUTDIR}
+	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
+	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Ref.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
+	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ItemTemplates.7.0.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
+	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ProjectTemplates.7.0.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
+	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.7.0.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
+	mkdir -p "$DOWNLOADDIR/aspnetcore/Runtime/$ASPNETCORE_VERSION"
+	cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz" "$DOWNLOADDIR/aspnetcore/Runtime/$ASPNETCORE_VERSION"
+	cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore_base_runtime.version" "$DOWNLOADDIR/aspnetcore/Runtime/$ASPNETCORE_VERSION"
+	cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" "$OUTPUTDIR"
 fi
 popd
 
 INSTALLER_CONF=Release
-INSTALLER_VERSION=7.0.100-dev
+INSTALLER_VERSION=$installer_version_prefix-$installer_version_suffix
 pushd installer
 if [[ -z ${SKIP_BUILD_INSTALLER+x} ]]; then
 	rm -rf artifacts
 	# Setting HostRid to linux- instead of ubuntu- avoids requiring Debian installer packages
-	./build.sh -c ${INSTALLER_CONF} /p:HostRid=linux-x64 /p:Architecture=${ARCH} /p:PublicBaseURL=file://${DOWNLOADDIR}/ /p:DotNetBuildFromSource=true /p:DotNetBuildOffline=true /p:MicrosoftNETCoreAppRuntimePackageVersion=7.0.0-dev /p:MicrosoftDotnetToolsetInternalPackageVersion=7.0.100-dev /p:MicrosoftAspNetCoreAppRuntimePackageVersion=7.0.0-dev /p:MicrosoftNETCoreAppRefPackageVersion=7.0.0-dev /p:MonoWorkloadManifestVersion=7.0.0-preview.4.22208.8 /p:MicrosoftAspNetCoreAppRefPackageVersion=7.0.0-dev /p:MicrosoftNETCoreAppHostPackageVersion=7.0.0-dev
+	./build.sh -c "$INSTALLER_CONF" /p:HostRid=linux-x64 /p:Architecture="$ARCH" /p:VersionPrefix="$installer_version_prefix" /p:VersionSuffix="$installer_version_suffix" /p:PublicBaseURL="file://$DOWNLOADDIR/"
 fi
 if [[ -z ${SKIP_PACKAGE_INSTALLER+x} ]]; then
-	cp artifacts/packages/${INSTALLER_CONF}/Shipping/dotnet-sdk-${INSTALLER_VERSION}-linux-${ARCH}.tar.gz ${OUTPUTDIR}
+	cp "artifacts/packages/$INSTALLER_CONF/Shipping/dotnet-sdk-$INSTALLER_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
 fi
 popd
-
