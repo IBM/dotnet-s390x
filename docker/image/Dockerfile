@@ -19,6 +19,7 @@ RUN dpkg --add-architecture s390x && \
         libkrb5-dev:s390x \
         liblttng-ust-dev:s390x \
         liblttng-ust0 \
+        libssl-dev \
         libssl-dev:s390x \
         libstdc++-8-dev-s390x-cross \
         libxml2-utils \
@@ -30,7 +31,6 @@ RUN dpkg --add-architecture s390x && \
         ninja-build \
         nodejs \
         python3 \
-        python3-pip \
         quilt \
         tmux \
         vim \
@@ -40,4 +40,10 @@ RUN dpkg --add-architecture s390x && \
         zsh
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen
 # v3.14.5+
-RUN python3 -m pip install cmake
+RUN cd /tmp && \
+    curl -L https://github.com/Kitware/CMake/releases/download/v3.23.2/cmake-3.23.2.tar.gz | tar -xz && \
+    cd cmake-3.23.2 && \
+    ./bootstrap --parallel="$(nproc)" && \
+    make -j"$(nproc)" install && \
+    cd .. && \
+    rm -r cmake-3.23.2 \
