@@ -48,6 +48,16 @@ if [[ -z ${SKIP_PACKAGE_RUNTIME+x} ]]; then
 fi
 popd
 
+MSBUILD_CONF=Release
+pushd msbuild
+if [[ -z ${SKIP_BUILD_MSBUILD+x} ]]; then
+	./build.sh --pack -c "$MSBUILD_CONF" /p:VersionPrefix="$msbuild_version_prefix" /p:VersionSuffix="$msbuild_version_suffix"
+fi
+if [[ -z ${SKIP_PACKAGE_MSBUILD+x} ]]; then
+	for I in artifacts/packages/Release/*/*; do $NUGET add "$I" -Source "$PACKAGESDIR"; done
+fi
+popd
+
 SDK_CONF=Release
 SDK_VERSION=$sdk_version_prefix-$sdk_version_suffix
 pushd sdk

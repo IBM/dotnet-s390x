@@ -8,7 +8,7 @@ installer_sha_version=$(curl -L https://aka.ms/dotnet/7.0.1xx/daily/productCommi
 installer_sha=$(echo "$installer_sha_version" | cut -d, -f1)
 installer_version=$(echo "$installer_sha_version" | awk -F", " '{print $2}')
 installer_version_prefix=$(echo "$installer_version" | cut -d- -f1)
-installer_version_suffix=$(echo "$installer_version" | cut -d- -f2)
+installer_version_suffix=$(echo "$installer_version" | cut -d- -f2-)
 git checkout "$installer_sha"
 repos=(
     runtime:Microsoft.NETCore.App.Ref
@@ -29,6 +29,6 @@ for repo in "${repos[@]}"; do
     version=$(xmllint --xpath "$xpath" ../installer/eng/Version.Details.xml)
     version_prefix=$(echo "$version" | cut -d- -f1)
     echo "${path_name[0]}_version_prefix=$version_prefix" >>../dotnet-s390x-versions
-    version_suffix=$(echo "$version" | cut -d- -f2)
+    version_suffix=$(echo "$version" | cut -d- -f2-)
     echo "${path_name[0]}_version_suffix=$version_suffix" >>../dotnet-s390x-versions
 done
