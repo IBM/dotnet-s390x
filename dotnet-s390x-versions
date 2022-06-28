@@ -1,0 +1,10 @@
+installer_version_prefix=7.0.100
+installer_version_suffix=preview.7.22328.2
+runtime_version_prefix=7.0.0
+runtime_version_suffix=preview.6.22322.7
+msbuild_version_prefix=17.3.0
+msbuild_version_suffix=preview
+sdk_version_prefix=7.0.100
+sdk_version_suffix=preview.7.22324.4
+aspnetcore_version_prefix=7.0.0
+aspnetcore_version_suffix=preview.7.22324.1
