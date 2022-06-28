@@ -1,5 +1,6 @@
 # Based on Stefan Schulze Frielinghaus' dotnet-cloud-init.
-FROM ubuntu:20.04
+# Use old Ubuntu for RHEL compatibility.
+FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y curl
@@ -11,16 +12,15 @@ RUN dpkg --add-architecture s390x && \
         binutils-multiarch \
         binutils-s390x-linux-gnu \
         clang \
-        cmake \
         gawk \
         git \
-        libgcc-10-dev-s390x-cross \
+        libgcc-8-dev-s390x-cross \
         libicu-dev:s390x \
         libkrb5-dev:s390x \
         liblttng-ust-dev:s390x \
         liblttng-ust0 \
         libssl-dev:s390x \
-        libstdc++-10-dev-s390x-cross \
+        libstdc++-8-dev-s390x-cross \
         libxml2-utils \
         llvm \
         locales \
@@ -30,6 +30,7 @@ RUN dpkg --add-architecture s390x && \
         ninja-build \
         nodejs \
         python3 \
+        python3-pip \
         quilt \
         tmux \
         vim \
@@ -38,3 +39,5 @@ RUN dpkg --add-architecture s390x && \
         zlib1g-dev:s390x \
         zsh
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen
+# v3.14.5+
+RUN python3 -m pip install cmake
