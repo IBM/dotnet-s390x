@@ -48,15 +48,6 @@ if [[ -z ${SKIP_PACKAGE_RUNTIME+x} ]]; then
 fi
 popd
 
-pushd roslyn
-if [[ -z ${SKIP_BUILD_ROSLYN+x} ]]; then
-	./eng/build.sh --restore --build --pack -c Release /p:VersionSuffix=dev
-fi
-if [[ -z ${SKIP_PACKAGE_ROSLYN+x} ]]; then
-	for I in artifacts/packages/Release/*/*.nupkg; do ${NUGET} add $I -Source ${PACKAGESDIR}; done
-fi
-popd
-
 SDK_CONF=Release
 SDK_VERSION_PREFIX=7.0.100
 SDK_VERSION_SUFFIX=dev

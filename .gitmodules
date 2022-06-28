@@ -7,9 +7,6 @@
 [submodule "sdk"]
 	path = sdk
 	url = https://github.com/dotnet/sdk
-[submodule "roslyn"]
-	path = roslyn
-	url = https://github.com/dotnet/roslyn
 [submodule "runtime"]
 	path = runtime
 	url = https://github.com/dotnet/runtime
