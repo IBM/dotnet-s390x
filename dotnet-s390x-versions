@@ -10,3 +10,4 @@ sdk_version_prefix=7.0.100
 sdk_version_suffix=preview.7.22354.3
 aspnetcore_version_prefix=7.0.0
 aspnetcore_version_suffix=preview.7.22354.2
+runtime_download_version=7.0.0-preview.6.22329.5

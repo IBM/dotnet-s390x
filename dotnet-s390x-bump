@@ -46,5 +46,8 @@ for repo in "${repos[@]}"; do
     version_suffix=$(echo "$version" | cut -d- -f2- -s)
     echo "${path_name[0]}_version_suffix=$version_suffix" >>dotnet-s390x-versions
 done
+xpath="/Project/PropertyGroup/MicrosoftNETCoreBrowserDebugHostTransportVersion/text()"
+runtime_download_version=$(xmllint --xpath "$xpath" aspnetcore/eng/Versions.props)
+echo "runtime_download_version=$runtime_download_version" >>dotnet-s390x-versions
 git add dotnet-s390x-versions
 git commit -m "Update to v$installer_version"
