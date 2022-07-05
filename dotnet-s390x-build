@@ -85,6 +85,7 @@ if [ "$roslyn_version_suffix" != "" ]; then
 	roslyn_build_flags="$roslyn_build_flags /p:VersionSuffix=$roslyn_version_suffix"
 fi
 if [ -z ${SKIP_BUILD_ROSLYN+x} ] && [ ! -e .skip-build ]; then
+	# shellcheck disable=SC2086
 	./eng/build.sh \
 		--restore \
 		--build \
@@ -93,7 +94,7 @@ if [ -z ${SKIP_BUILD_ROSLYN+x} ] && [ ! -e .skip-build ]; then
 		$roslyn_build_flags
 fi
 if [ -z ${SKIP_PACKAGE_ROSLYN+x} ] && [ ! -e .skip-package ]; then
-	for I in artifacts/packages/Release/*/*.nupkg; do ${NUGET} add $I -Source ${PACKAGESDIR}; done
+	for I in artifacts/packages/Release/*/*.nupkg; do $NUGET add "$I" -Source "$PACKAGESDIR"; done
 fi
 popd
 
@@ -121,6 +122,7 @@ popd
 
 ASPNETCORE_CONF=Release
 ASPNETCORE_VERSION=$aspnetcore_version_prefix
+aspnetcore_major_minor_version=$aspnetcore_major_version.$aspnetcore_minor_version
 aspnetcore_build_flags=""
 if [ "$aspnetcore_version_suffix" != "" ]; then
 	ASPNETCORE_VERSION=$ASPNETCORE_VERSION-$aspnetcore_version_suffix
@@ -147,9 +149,9 @@ fi
 if [ -z ${SKIP_PACKAGE_ASPNETCORE+x} ] && [ ! -e .skip-package ]; then
 	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
 	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Ref.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
-	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ItemTemplates.7.0.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
-	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ProjectTemplates.7.0.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
-	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.7.0.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
+	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ItemTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
+	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
+	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
 	mkdir -p "$DOWNLOADDIR/aspnetcore/Runtime/$ASPNETCORE_VERSION"
 	cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz" "$DOWNLOADDIR/aspnetcore/Runtime/$ASPNETCORE_VERSION"
 	cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore_base_runtime.version" "$DOWNLOADDIR/aspnetcore/Runtime/$ASPNETCORE_VERSION"

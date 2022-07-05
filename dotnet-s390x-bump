@@ -45,6 +45,10 @@ for repo in "${repos[@]}"; do
     echo "${path_name[0]}_version_prefix=$version_prefix" >>dotnet-s390x-versions
     version_suffix=$(echo "$version" | cut -d- -f2- -s)
     echo "${path_name[0]}_version_suffix=$version_suffix" >>dotnet-s390x-versions
+    major_version=$(echo "$version_prefix" | cut -d. -f1)
+    echo "${path_name[0]}_major_version=$major_version" >>dotnet-s390x-versions
+    minor_version=$(echo "$version_prefix" | cut -d. -f2)
+    echo "${path_name[0]}_minor_version=$minor_version" >>dotnet-s390x-versions
 done
 xpath="/Project/PropertyGroup/MicrosoftNETCoreBrowserDebugHostTransportVersion/text()"
 runtime_download_version=$(xmllint --xpath "$xpath" aspnetcore/eng/Versions.props)
