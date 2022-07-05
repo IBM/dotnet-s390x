@@ -22,12 +22,13 @@ ${NUGET} >/dev/null
 git submodule update --init --recursive
 
 pushd runtime
-git fetch https://github.com/iii-i/runtime.git 68266
-git cherry-pick --allow-empty FETCH_HEAD
+git fetch
+git cherry-pick --keep-redundant-commits 32670bdf9973  # https://github.com/dotnet/runtime/pull/70346
 popd
 
 pushd msbuild
-git cherry-pick --allow-empty 486a4599f4a5  # https://github.com/dotnet/msbuild/pull/7731
+git fetch
+git cherry-pick --keep-redundant-commits 486a4599f4a5  # https://github.com/dotnet/msbuild/pull/7731
 popd
 
 pushd sdk
