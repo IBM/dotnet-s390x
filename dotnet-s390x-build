@@ -176,6 +176,8 @@ if [ -z ${SKIP_BUILD_INSTALLER+x} ] && [ ! -e .skip-build ]; then
 		/p:HostRid=linux-x64 \
 		/p:Architecture="$ARCH" \
 		/p:PublicBaseURL="file://$DOWNLOADDIR/" \
+		/p:CoreSetupBlobRootUrl="file://$DOWNLOADDIR/" \
+		/p:DotnetToolsetBlobRootUrl="file://$DOWNLOADDIR/" \
 		$installer_build_flags
 fi
 if [ -z ${SKIP_PACKAGE_INSTALLER+x} ] && [ ! -e .skip-package ]; then
