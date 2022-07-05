@@ -41,6 +41,19 @@ if [ "$need_msbuild" -eq 0 ]; then
 fi
 popd
 
+pushd roslyn
+need_roslyn=0
+# https://github.com/dotnet/roslyn/pull/57003
+if ! git merge-base --is-ancestor d6eeb64a0191 HEAD; then
+	git cherry-pick d6eeb64a0191
+	need_roslyn=1
+fi
+if [ "$need_roslyn" -eq 0 ]; then
+	touch .skip_build
+	touch .skip_package
+fi
+popd
+
 pushd sdk
 update_nuget_config
 popd

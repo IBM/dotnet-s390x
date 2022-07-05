@@ -13,3 +13,6 @@
 [submodule "msbuild"]
 	path = msbuild
 	url = https://github.com/dotnet/msbuild
+[submodule "roslyn"]
+	path = roslyn
+	url = https://github.com/dotnet/roslyn

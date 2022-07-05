@@ -79,6 +79,24 @@ if [ -z ${SKIP_PACKAGE_MSBUILD+x} ] && [ ! -e .skip-package ]; then
 fi
 popd
 
+pushd roslyn
+roslyn_build_flags=""
+if [ "$roslyn_version_suffix" != "" ]; then
+	roslyn_build_flags="$roslyn_build_flags /p:VersionSuffix=$roslyn_version_suffix"
+fi
+if [ -z ${SKIP_BUILD_ROSLYN+x} ] && [ ! -e .skip-build ]; then
+	./eng/build.sh \
+		--restore \
+		--build \
+		--pack \
+		-c Release \
+		$roslyn_build_flags
+fi
+if [ -z ${SKIP_PACKAGE_ROSLYN+x} ] && [ ! -e .skip-package ]; then
+	for I in artifacts/packages/Release/*/*.nupkg; do ${NUGET} add $I -Source ${PACKAGESDIR}; done
+fi
+popd
+
 SDK_CONF=Release
 SDK_VERSION=$sdk_version_prefix
 sdk_build_flags=""
