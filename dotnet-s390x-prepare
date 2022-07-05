@@ -27,8 +27,18 @@ git cherry-pick --keep-redundant-commits 32670bdf9973  # https://github.com/dotn
 popd
 
 pushd msbuild
+need_msbuild=0
 git fetch
-git cherry-pick --keep-redundant-commits 486a4599f4a5  # https://github.com/dotnet/msbuild/pull/7731
+# https://github.com/dotnet/msbuild/pull/7731
+if git merge-base --is-ancestor 67deba37040a HEAD && \
+		! git merge-base --is-ancestor 486a4599f4a5 HEAD; then
+	git cherry-pick 486a4599f4a5
+	need_msbuild=1
+fi
+if [ "$need_msbuild" -eq 0 ]; then
+	touch .skip_build
+	touch .skip_package
+fi
 popd
 
 pushd sdk
