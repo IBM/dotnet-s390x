@@ -27,7 +27,7 @@ CROSS=true
 RUNTIME_CONF=Release
 runtime_version=$runtime_version_prefix-$runtime_version_suffix
 pushd runtime
-if [[ -z ${SKIP_BUILD_RUNTIME+x} ]]; then
+if [ -z ${SKIP_BUILD_RUNTIME+x} ] && [ ! -e .skip-build ]; then
 	runtime_build_flags=""
 	# https://github.com/dotnet/arcade/issues/9846
 	if [ "$ARCH" = "s390x" ] && ! "$CROSS"; then
@@ -42,7 +42,7 @@ if [[ -z ${SKIP_BUILD_RUNTIME+x} ]]; then
 		/p:VersionSuffix="$runtime_version_suffix" \
 		$runtime_build_flags
 fi
-if [[ -z ${SKIP_PACKAGE_RUNTIME+x} ]]; then
+if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
 	$NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" -Source "$PACKAGESDIR"
 	$NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" -Source "$PACKAGESDIR"
 	$NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Ref.$runtime_version.nupkg" -Source "$PACKAGESDIR"
@@ -61,10 +61,10 @@ popd
 
 MSBUILD_CONF=Release
 pushd msbuild
-if [[ -z ${SKIP_BUILD_MSBUILD+x} ]]; then
+if [ -z ${SKIP_BUILD_MSBUILD+x} ] && [ ! -e .skip-build ]; then
 	./build.sh --pack -c "$MSBUILD_CONF" /p:VersionPrefix="$msbuild_version_prefix" /p:VersionSuffix="$msbuild_version_suffix"
 fi
-if [[ -z ${SKIP_PACKAGE_MSBUILD+x} ]]; then
+if [ -z ${SKIP_PACKAGE_MSBUILD+x} ] && [ ! -e .skip-package ]; then
 	for I in artifacts/packages/Release/*/*; do $NUGET add "$I" -Source "$PACKAGESDIR"; done
 fi
 popd
@@ -72,10 +72,10 @@ popd
 SDK_CONF=Release
 SDK_VERSION=$sdk_version_prefix-$sdk_version_suffix
 pushd sdk
-if [[ -z ${SKIP_BUILD_SDK+x} ]]; then
+if [ -z ${SKIP_BUILD_SDK+x} ] && [ ! -e .skip-build ]; then
 	./build.sh --pack -c "$SDK_CONF" /p:Architecture="$ARCH" /p:VersionPrefix="$sdk_version_prefix" /p:VersionSuffix="$sdk_version_suffix"
 fi
-if [[ -z ${SKIP_PACKAGE_SDK+x} ]]; then
+if [ -z ${SKIP_PACKAGE_SDK+x} ] && [ ! -e .skip-package ]; then
 	mkdir -p "$DOWNLOADDIR/Sdk/$SDK_VERSION"
 	cp "artifacts/packages/Release/NonShipping/dotnet-toolset-internal-$SDK_VERSION.zip" "$DOWNLOADDIR/Sdk/$SDK_VERSION"
 fi
@@ -84,7 +84,7 @@ popd
 ASPNETCORE_CONF=Release
 ASPNETCORE_VERSION=$aspnetcore_version_prefix-$aspnetcore_version_suffix
 pushd aspnetcore
-if [[ -z ${SKIP_BUILD_ASPNETCORE+x} ]]; then
+if [ -z ${SKIP_BUILD_ASPNETCORE+x} ] && [ ! -e .skip-build ]; then
 	# Run build script multiple times to work around yarn race condition
 	for i in $(seq 1 3); do
 		# shellcheck disable=SC2046
@@ -96,7 +96,7 @@ if [[ -z ${SKIP_BUILD_ASPNETCORE+x} ]]; then
 		fi
 	done
 fi
-if [[ -z ${SKIP_PACKAGE_ASPNETCORE+x} ]]; then
+if [ -z ${SKIP_PACKAGE_ASPNETCORE+x} ] && [ ! -e .skip-package ]; then
 	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
 	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Ref.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
 	$NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ItemTemplates.7.0.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
@@ -112,12 +112,12 @@ popd
 INSTALLER_CONF=Release
 INSTALLER_VERSION=$installer_version_prefix-$installer_version_suffix
 pushd installer
-if [[ -z ${SKIP_BUILD_INSTALLER+x} ]]; then
+if [ -z ${SKIP_BUILD_INSTALLER+x} ] && [ ! -e .skip-build ]; then
 	rm -rf artifacts
 	# Setting HostRid to linux- instead of ubuntu- avoids requiring Debian installer packages
 	./build.sh -c "$INSTALLER_CONF" /p:HostRid=linux-x64 /p:Architecture="$ARCH" /p:VersionPrefix="$installer_version_prefix" /p:VersionSuffix="$installer_version_suffix" /p:PublicBaseURL="file://$DOWNLOADDIR/"
 fi
-if [[ -z ${SKIP_PACKAGE_INSTALLER+x} ]]; then
+if [ -z ${SKIP_PACKAGE_INSTALLER+x} ] && [ ! -e .skip-package ]; then
 	cp "artifacts/packages/$INSTALLER_CONF/Shipping/dotnet-sdk-$INSTALLER_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
 fi
 popd
