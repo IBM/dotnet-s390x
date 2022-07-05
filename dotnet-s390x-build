@@ -28,8 +28,19 @@ RUNTIME_CONF=Release
 runtime_version=$runtime_version_prefix-$runtime_version_suffix
 pushd runtime
 if [[ -z ${SKIP_BUILD_RUNTIME+x} ]]; then
-	# shellcheck disable=SC2046
-	ROOTFS_DIR=/ ./build.sh $($CROSS && echo -arch "$ARCH" -cross) -c "$RUNTIME_CONF" -clang /p:VersionPrefix="$runtime_version_prefix" /p:VersionSuffix="$runtime_version_suffix"
+	runtime_build_flags=""
+	# https://github.com/dotnet/arcade/issues/9846
+	if [ "$ARCH" = "s390x" ] && ! "$CROSS"; then
+		runtime_build_flags="$runtime_build_flags /p:RunApiCompat=false"
+	fi
+	# shellcheck disable=SC2046,SC2086
+	ROOTFS_DIR=/ ./build.sh \
+		$("$CROSS" && echo -arch "$ARCH" -cross) \
+		-c "$RUNTIME_CONF" \
+		-clang \
+		/p:VersionPrefix="$runtime_version_prefix" \
+		/p:VersionSuffix="$runtime_version_suffix" \
+		$runtime_build_flags
 fi
 if [[ -z ${SKIP_PACKAGE_RUNTIME+x} ]]; then
 	$NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" -Source "$PACKAGESDIR"
