@@ -20,11 +20,12 @@ installer_version_prefix=$(echo "$installer_version" | cut -d- -f1)
 installer_version_suffix=$(echo "$installer_version" | cut -d- -f2- -s)
 git checkout --force "$installer_sha"
 repos=(
-    runtime:Microsoft.NETCore.App.Ref
-    msbuild:Microsoft.Build
-    roslyn:Microsoft.Net.Compilers.Toolset
-    sdk:Microsoft.NET.Sdk
-    aspnetcore:Microsoft.AspNetCore.App.Ref
+    runtime:Microsoft.NETCore.App.Ref:true
+    msbuild:Microsoft.Build:true
+    roslyn:Microsoft.Net.Compilers.Toolset:true
+    sdk:Microsoft.NET.Sdk:true
+    aspnetcore:Microsoft.AspNetCore.App.Ref:true
+    aspnetcore_internal:Microsoft.AspNetCore.App.Ref.Internal:false
 )
 cd ..
 echo "installer_version_prefix=$installer_version_prefix" >dotnet-s390x-versions
@@ -32,15 +33,18 @@ echo "installer_version_suffix=$installer_version_suffix" >>dotnet-s390x-version
 git add installer
 for repo in "${repos[@]}"; do
     IFS=: read -r -a path_name <<< "$repo"
-    cd "${path_name[0]}"
-    git fetch
-    xpath="/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[1]}\"]/Sha/text()"
-    sha=$(xmllint --xpath "$xpath" ../installer/eng/Version.Details.xml)
-    git checkout --force "$sha"
     xpath="string(/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[1]}\"]/@Version)"
-    version=$(xmllint --xpath "$xpath" ../installer/eng/Version.Details.xml)
-    cd ..
-    git add "${path_name[0]}"
+    version=$(xmllint --xpath "$xpath" installer/eng/Version.Details.xml)
+    if "${path_name[2]}"; then
+        cd "${path_name[0]}"
+        git fetch
+        xpath="/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[1]}\"]/Sha/text()"
+        sha=$(xmllint --xpath "$xpath" ../installer/eng/Version.Details.xml)
+        git checkout --force "$sha"
+        cd ..
+        git add "${path_name[0]}"
+    fi
+    echo "${path_name[0]}_version=$version" >>dotnet-s390x-versions
     version_prefix=$(echo "$version" | cut -d- -f1)
     echo "${path_name[0]}_version_prefix=$version_prefix" >>dotnet-s390x-versions
     version_suffix=$(echo "$version" | cut -d- -f2- -s)
