@@ -17,7 +17,7 @@ else
     installer_sha=v$installer_version
 fi
 installer_version_prefix=$(echo "$installer_version" | cut -d- -f1)
-installer_version_suffix=$(echo "$installer_version" | cut -d- -f2-)
+installer_version_suffix=$(echo "$installer_version" | cut -d- -f2- -s)
 git checkout "$installer_sha"
 repos=(
     runtime:Microsoft.NETCore.App.Ref
@@ -42,7 +42,7 @@ for repo in "${repos[@]}"; do
     git add "${path_name[0]}"
     version_prefix=$(echo "$version" | cut -d- -f1)
     echo "${path_name[0]}_version_prefix=$version_prefix" >>dotnet-s390x-versions
-    version_suffix=$(echo "$version" | cut -d- -f2-)
+    version_suffix=$(echo "$version" | cut -d- -f2- -s)
     echo "${path_name[0]}_version_suffix=$version_suffix" >>dotnet-s390x-versions
 done
 git add dotnet-s390x-versions

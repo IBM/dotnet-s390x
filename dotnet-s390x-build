@@ -25,10 +25,14 @@ fi
 ARCH=s390x
 CROSS=true
 RUNTIME_CONF=Release
-runtime_version=$runtime_version_prefix-$runtime_version_suffix
+runtime_build_flags=""
+runtime_version=$runtime_version_prefix
+if [ "$runtime_version_suffix" != "" ]; then
+	runtime_version=$runtime_version-$runtime_version_suffix
+	runtime_build_flags="$runtime_build_flags /p:VersionSuffix=$runtime_version_suffix"
+fi
 pushd runtime
 if [ -z ${SKIP_BUILD_RUNTIME+x} ] && [ ! -e .skip-build ]; then
-	runtime_build_flags=""
 	# https://github.com/dotnet/arcade/issues/9846
 	if [ "$ARCH" = "s390x" ] && ! "$CROSS"; then
 		runtime_build_flags="$runtime_build_flags /p:RunApiCompat=false"
@@ -38,8 +42,6 @@ if [ -z ${SKIP_BUILD_RUNTIME+x} ] && [ ! -e .skip-build ]; then
 		$("$CROSS" && echo -arch "$ARCH" -cross) \
 		-c "$RUNTIME_CONF" \
 		-clang \
-		/p:VersionPrefix="$runtime_version_prefix" \
-		/p:VersionSuffix="$runtime_version_suffix" \
 		$runtime_build_flags
 fi
 if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
@@ -60,9 +62,17 @@ fi
 popd
 
 MSBUILD_CONF=Release
+msbuild_build_flags=""
+if [ "$msbuild_version_suffix" != "" ]; then
+	msbuild_build_flags="$msbuild_build_flags /p:VersionSuffix=$msbuild_version_suffix"
+fi
 pushd msbuild
 if [ -z ${SKIP_BUILD_MSBUILD+x} ] && [ ! -e .skip-build ]; then
-	./build.sh --pack -c "$MSBUILD_CONF" /p:VersionPrefix="$msbuild_version_prefix" /p:VersionSuffix="$msbuild_version_suffix"
+	# shellcheck disable=SC2086
+	./build.sh \
+		--pack \
+		-c "$MSBUILD_CONF" \
+		$msbuild_build_flags
 fi
 if [ -z ${SKIP_PACKAGE_MSBUILD+x} ] && [ ! -e .skip-package ]; then
 	for I in artifacts/packages/Release/*/*; do $NUGET add "$I" -Source "$PACKAGESDIR"; done
@@ -70,10 +80,20 @@ fi
 popd
 
 SDK_CONF=Release
-SDK_VERSION=$sdk_version_prefix-$sdk_version_suffix
+SDK_VERSION=$sdk_version_prefix
+sdk_build_flags=""
+if [ "$sdk_version_suffix" != "" ]; then
+	SDK_VERSION=$SDK_VERSION-$sdk_version_suffix
+	sdk_build_flags="$sdk_build_flags /p:VersionSuffix=$sdk_version_suffix"
+fi
 pushd sdk
 if [ -z ${SKIP_BUILD_SDK+x} ] && [ ! -e .skip-build ]; then
-	./build.sh --pack -c "$SDK_CONF" /p:Architecture="$ARCH" /p:VersionPrefix="$sdk_version_prefix" /p:VersionSuffix="$sdk_version_suffix"
+	# shellcheck disable=SC2086
+	./build.sh \
+		--pack \
+		-c "$SDK_CONF" \
+		/p:Architecture="$ARCH" \
+		$sdk_build_flags
 fi
 if [ -z ${SKIP_PACKAGE_SDK+x} ] && [ ! -e .skip-package ]; then
 	mkdir -p "$DOWNLOADDIR/Sdk/$SDK_VERSION"
@@ -82,13 +102,23 @@ fi
 popd
 
 ASPNETCORE_CONF=Release
-ASPNETCORE_VERSION=$aspnetcore_version_prefix-$aspnetcore_version_suffix
+ASPNETCORE_VERSION=$aspnetcore_version_prefix
+aspnetcore_build_flags=""
+if [ "$aspnetcore_version_suffix" != "" ]; then
+	ASPNETCORE_VERSION=$ASPNETCORE_VERSION-$aspnetcore_version_suffix
+	aspnetcore_build_flags="$aspnetcore_build_flags /p:VersionSuffix=$aspnetcore_version_suffix"
+fi
 pushd aspnetcore
 if [ -z ${SKIP_BUILD_ASPNETCORE+x} ] && [ ! -e .skip-build ]; then
 	# Run build script multiple times to work around yarn race condition
 	for i in $(seq 1 3); do
-		# shellcheck disable=SC2046
-		if ./eng/build.sh $("$CROSS" && echo -arch "$ARCH") -c "$ASPNETCORE_CONF" --pack /p:VersionPrefix="$aspnetcore_version_prefix" /p:VersionSuffix="$aspnetcore_version_suffix" /p:DotNetAssetRootUrl="file://$DOWNLOADDIR/"; then
+		# shellcheck disable=SC2046,SC2086
+		if ./eng/build.sh \
+				$("$CROSS" && echo -arch "$ARCH") \
+				-c "$ASPNETCORE_CONF" \
+				--pack \
+				/p:DotNetAssetRootUrl="file://$DOWNLOADDIR/" \
+				$aspnetcore_build_flags; then
 			break
 		fi
 		if [ "$i" -eq 3 ]; then
@@ -110,12 +140,23 @@ fi
 popd
 
 INSTALLER_CONF=Release
-INSTALLER_VERSION=$installer_version_prefix-$installer_version_suffix
+INSTALLER_VERSION=$installer_version_prefix
+installer_build_flags=""
+if [ "$installer_version_suffix" != "" ]; then
+	INSTALLER_VERSION=$INSTALLER_VERSION-$installer_version_suffix
+	installer_build_flags="$installer_build_flags /p:VersionSuffix=$installer_version_suffix"
+fi
 pushd installer
 if [ -z ${SKIP_BUILD_INSTALLER+x} ] && [ ! -e .skip-build ]; then
 	rm -rf artifacts
 	# Setting HostRid to linux- instead of ubuntu- avoids requiring Debian installer packages
-	./build.sh -c "$INSTALLER_CONF" /p:HostRid=linux-x64 /p:Architecture="$ARCH" /p:VersionPrefix="$installer_version_prefix" /p:VersionSuffix="$installer_version_suffix" /p:PublicBaseURL="file://$DOWNLOADDIR/"
+	# shellcheck disable=SC2086
+	./build.sh \
+		-c "$INSTALLER_CONF" \
+		/p:HostRid=linux-x64 \
+		/p:Architecture="$ARCH" \
+		/p:PublicBaseURL="file://$DOWNLOADDIR/" \
+		$installer_build_flags
 fi
 if [ -z ${SKIP_PACKAGE_INSTALLER+x} ] && [ ! -e .skip-package ]; then
 	cp "artifacts/packages/$INSTALLER_CONF/Shipping/dotnet-sdk-$INSTALLER_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
