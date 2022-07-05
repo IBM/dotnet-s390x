@@ -6,12 +6,13 @@ RUN apt-get update && \
     apt-get install -y curl
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
 COPY fs/ /
+ARG llvm_version=7
 RUN dpkg --add-architecture s390x && \
     apt-get update && \
     apt-get install --no-install-recommends --yes \
         binutils-multiarch \
         binutils-s390x-linux-gnu \
-        clang \
+        clang-$llvm_version \
         gawk \
         git \
         libgcc-8-dev-s390x-cross \
@@ -23,7 +24,7 @@ RUN dpkg --add-architecture s390x && \
         libssl-dev:s390x \
         libstdc++-8-dev-s390x-cross \
         libxml2-utils \
-        llvm \
+        llvm-$llvm_version \
         locales \
         lttng-modules-dkms \
         lttng-tools \
@@ -38,6 +39,7 @@ RUN dpkg --add-architecture s390x && \
         yarn \
         zlib1g-dev:s390x \
         zsh
+ENV PATH=/usr/lib/llvm-$llvm_version/bin:$PATH
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen
 # v3.14.5+
 RUN cd /tmp && \
