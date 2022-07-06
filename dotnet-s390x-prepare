@@ -42,8 +42,8 @@ if git merge-base --is-ancestor 67deba37040a HEAD && \
 	need_msbuild=1
 fi
 if [ "$need_msbuild" -eq 0 ]; then
-	touch .skip_build
-	touch .skip_package
+	touch .skip-build
+	touch .skip-package
 fi
 popd
 
@@ -55,8 +55,8 @@ if ! git merge-base --is-ancestor d6eeb64a0191 HEAD; then
 	need_roslyn=1
 fi
 if [ "$need_roslyn" -eq 0 ]; then
-	touch .skip_build
-	touch .skip_package
+	touch .skip-build
+	touch .skip-package
 fi
 popd
 
