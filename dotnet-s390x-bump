@@ -57,5 +57,8 @@ done
 xpath="/Project/PropertyGroup/MicrosoftNETCoreBrowserDebugHostTransportVersion/text()"
 runtime_download_version=$(xmllint --xpath "$xpath" aspnetcore/eng/Versions.props)
 echo "runtime_download_version=$runtime_download_version" >>dotnet-s390x-versions
+xpath="/Project/PropertyGroup/PreReleaseVersionLabel/text()"
+runtime_version_label=$(xmllint --xpath "$xpath" runtime/eng/Versions.props)
+echo "runtime_version_label=$runtime_version_label" >>dotnet-s390x-versions
 git add dotnet-s390x-versions
 git commit -m "Update to v$installer_version"
