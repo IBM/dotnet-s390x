@@ -21,8 +21,14 @@ function install_host_sdk {
 
     # Installer available?
     version=$(jq -r .tools.dotnet "$1/global.json")
-    tgz=$HOME/.dotnet/dotnet-sdk-$version-linux-$(uname -m).tar.gz
-    if [ ! -e "$tgz" ]; then return; fi
+    cache_dir=$HOME/.dotnet
+    tgz_name=dotnet-sdk-$version-linux-$(uname -m).tar.gz
+    tgz=$cache_dir/$tgz_name
+    if [ ! -e "$tgz" ]; then
+        if ! gh release download --dir "$cache_dir" "v$version"; then
+            return
+        fi
+    fi
 
     # Install.
     mkdir -p "$root"
