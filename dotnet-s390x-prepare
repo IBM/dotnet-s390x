@@ -14,6 +14,21 @@ function update_nuget_config {
 EOF
 }
 
+function install_host_sdk {
+    # Already installed?
+    root=$1/.dotnet
+    if [ -d "$root" ]; then return; fi
+
+    # Installer available?
+    version=$(jq -r .tools.dotnet "$1/global.json")
+    tgz=$HOME/.dotnet/dotnet-sdk-$version-linux-$(uname -m).tar.gz
+    if [ ! -e "$tgz" ]; then return; fi
+
+    # Install.
+    mkdir -p "$root"
+    tar -C "$root" -xf "$tgz"
+}
+
 if [ ! -f nuget.exe ]; then
     curl -o nuget.exe https://dist.nuget.org/win-x86-commandline/v4.9.4/nuget.exe
 fi
@@ -67,3 +82,9 @@ popd
 pushd installer
 update_nuget_config
 popd
+
+install_host_sdk runtime
+install_host_sdk msbuild
+install_host_sdk roslyn
+install_host_sdk sdk
+install_host_sdk aspnetcore

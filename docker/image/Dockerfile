@@ -15,6 +15,7 @@ RUN dpkg --add-architecture s390x && \
         clang-$llvm_version \
         gawk \
         git \
+        jq \
         libgcc-8-dev-s390x-cross \
         libicu-dev:s390x \
         libkrb5-dev:s390x \
