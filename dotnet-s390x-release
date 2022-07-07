@@ -11,6 +11,7 @@ version=${tag:1}
 
 git push origin "$tag"
 gh release create \
+    --notes "" \
     "$tag" \
     output/dotnet-runtime-"$runtime_version"-linux-s390x.tar.gz \
     output/dotnet-sdk-"$version"-linux-s390x.tar.gz
