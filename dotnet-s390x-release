@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e -u -x
+tag=$(git describe --exact-match --tags)
+[ "${tag:0:1}" == "v" ] || exit 1
+version=${tag:1}
+git push origin "$tag"
+gh release create \
+    "$tag" \
+    output/dotnet-sdk-"$version"-linux-s390x.tar.gz
