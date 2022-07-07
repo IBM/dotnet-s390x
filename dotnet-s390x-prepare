@@ -25,7 +25,7 @@ function install_host_sdk {
     tgz_name=dotnet-sdk-$version-linux-$(uname -m).tar.gz
     tgz=$cache_dir/$tgz_name
     if [ ! -e "$tgz" ]; then
-        if ! gh release download --dir "$cache_dir" "v$version"; then
+        if ! gh release download --dir "$cache_dir" --pattern "$tgz_name" "v$version"; then
             return
         fi
     fi
