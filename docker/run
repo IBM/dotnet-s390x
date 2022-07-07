@@ -12,9 +12,8 @@ exec docker run \
     --rm \
     --tty \
     --ulimit=nofile=16384 \
-    --user="$(id -u):$(id -g)" \
     --volume="$basedir:$basedir:z" \
     --volume="$HOME:$HOME:z" \
     --workdir="$basedir" \
     "$iid" \
-    "$@"
+    bash -c "groupadd -g $(id -g) $(id -ng) && useradd -u $(id -u) -g $(id -g) $(id -nu) && exec runuser -u $(id -nu) -- \"\$@\"" -- "$@"
