@@ -1,6 +1,35 @@
 #!/bin/bash
 set -e -u -x
 cd "$(dirname "$0")"
+
+function echo_version {
+    local name=$1
+    local version=$2
+
+    echo "${name}_version=$version"
+    version_prefix=$(echo "$version" | cut -d- -f1)
+    echo "${name}_version_prefix=$version_prefix"
+    version_suffix=$(echo "$version" | cut -d- -f2- -s)
+    echo "${name}_version_suffix=$version_suffix"
+    major_version=$(echo "$version_prefix" | cut -d. -f1)
+    echo "${name}_major_version=$major_version"
+    minor_version=$(echo "$version_prefix" | cut -d. -f2)
+    echo "${name}_minor_version=$minor_version"
+}
+
+function echo_property {
+    local name=$1
+    local path=$2
+    local property=$3
+
+    value=$(xmllint --xpath "/Project/PropertyGroup/${property}/text()" "$path")
+    if [ "${value:0:2}" = '$(' ] && [ "${value:${#value} - 1}" = ')' ]; then
+        echo_property "$name" "$path" "${value:2:-1}"
+    else
+        echo "$name=$value"
+    fi
+}
+
 if [ $# -gt 0 ]; then
     installer_version=$1
     shift
@@ -15,8 +44,6 @@ fi
 installer_sha_version=$(curl -L "$url" | grep ^installer: | cut -d: -f2)
 installer_sha=$(echo "$installer_sha_version" | cut -d, -f1)
 installer_version=$(echo "$installer_sha_version" | awk -F", " '{print $2}')
-installer_version_prefix=$(echo "$installer_version" | cut -d- -f1)
-installer_version_suffix=$(echo "$installer_version" | cut -d- -f2- -s)
 git fetch
 git checkout --force "$installer_sha"
 repos=(
@@ -28,8 +55,7 @@ repos=(
     aspnetcore_internal:Microsoft.AspNetCore.App.Ref.Internal:false
 )
 cd ..
-echo "installer_version_prefix=$installer_version_prefix" >dotnet-s390x-versions
-echo "installer_version_suffix=$installer_version_suffix" >>dotnet-s390x-versions
+echo_version installer "$installer_version" >dotnet-s390x-versions
 git add installer
 for repo in "${repos[@]}"; do
     IFS=: read -r -a path_name <<< "$repo"
@@ -44,22 +70,26 @@ for repo in "${repos[@]}"; do
         cd ..
         git add "${path_name[0]}"
     fi
-    echo "${path_name[0]}_version=$version" >>dotnet-s390x-versions
-    version_prefix=$(echo "$version" | cut -d- -f1)
-    echo "${path_name[0]}_version_prefix=$version_prefix" >>dotnet-s390x-versions
-    version_suffix=$(echo "$version" | cut -d- -f2- -s)
-    echo "${path_name[0]}_version_suffix=$version_suffix" >>dotnet-s390x-versions
-    major_version=$(echo "$version_prefix" | cut -d. -f1)
-    echo "${path_name[0]}_major_version=$major_version" >>dotnet-s390x-versions
-    minor_version=$(echo "$version_prefix" | cut -d. -f2)
-    echo "${path_name[0]}_minor_version=$minor_version" >>dotnet-s390x-versions
+    echo_version "${path_name[0]}" "$version" >>dotnet-s390x-versions
 done
-xpath="/Project/PropertyGroup/MicrosoftNETCoreBrowserDebugHostTransportVersion/text()"
-runtime_download_version=$(xmllint --xpath "$xpath" aspnetcore/eng/Versions.props)
-echo "runtime_download_version=$runtime_download_version" >>dotnet-s390x-versions
-xpath="/Project/PropertyGroup/PreReleaseVersionLabel/text()"
-runtime_version_label=$(xmllint --xpath "$xpath" runtime/eng/Versions.props)
-echo "runtime_version_label=$runtime_version_label" >>dotnet-s390x-versions
+
+{
+    echo_property \
+        aspnetcore_transport_version \
+        aspnetcore/eng/Versions.props \
+        MicrosoftNETCoreBrowserDebugHostTransportVersion
+
+    echo_property \
+        aspnetcore_runtime_version \
+        aspnetcore/eng/Versions.props \
+        MicrosoftNETCoreAppRuntimeVersion
+
+    echo_property \
+        runtime_version_label \
+        runtime/eng/Versions.props \
+        PreReleaseVersionLabel
+} >>dotnet-s390x-versions
+
 git add dotnet-s390x-versions
 git commit -m "Update to v$installer_version"
 git tag "v$installer_version"

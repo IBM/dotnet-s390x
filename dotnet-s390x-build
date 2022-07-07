@@ -41,8 +41,15 @@ if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
     $NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" -Source "$PACKAGESDIR"
     $NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" -Source "$PACKAGESDIR"
     $NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Ref.$runtime_version.nupkg" -Source "$PACKAGESDIR"
-    mkdir -p "$DOWNLOADDIR/Runtime/$runtime_download_version"
-    cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$DOWNLOADDIR/Runtime/$runtime_download_version"
+    mkdir -p "$DOWNLOADDIR/Runtime/$runtime_version"
+    cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$DOWNLOADDIR/Runtime/$runtime_version"
+    # Necessary for incoherent packages: pretend that the runtime that we built
+    # has the version that ASP.NET requires.
+    # https://devblogs.microsoft.com/dotnet/a-deep-dive-into-how-net-builds-and-ships/
+    mkdir -p "$DOWNLOADDIR/Runtime/$aspnetcore_transport_version"
+    cp \
+        "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" \
+        "$DOWNLOADDIR/Runtime/$aspnetcore_transport_version/dotnet-runtime-$aspnetcore_runtime_version-linux-$ARCH.tar.gz"
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$OUTPUTDIR"
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
