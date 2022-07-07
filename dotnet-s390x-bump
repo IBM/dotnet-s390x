@@ -8,16 +8,16 @@ fi
 git submodule update --init --recursive
 cd installer
 if [[ -z ${installer_version+x} ]]; then
-    git fetch
-    installer_sha_version=$(curl -L https://aka.ms/dotnet/7.0.1xx/daily/productCommit-linux-x64.txt | grep ^installer: | cut -d: -f2)
-    installer_sha=$(echo "$installer_sha_version" | cut -d, -f1)
-    installer_version=$(echo "$installer_sha_version" | awk -F", " '{print $2}')
+    url=https://aka.ms/dotnet/7.0.1xx/daily/productCommit-linux-x64.txt
 else
-    git fetch --tags
-    installer_sha=v$installer_version
+    url=https://dotnetbuilds.azureedge.net/public/Sdk/$installer_version/productCommit-linux-x64.txt
 fi
+installer_sha_version=$(curl -L "$url" | grep ^installer: | cut -d: -f2)
+installer_sha=$(echo "$installer_sha_version" | cut -d, -f1)
+installer_version=$(echo "$installer_sha_version" | awk -F", " '{print $2}')
 installer_version_prefix=$(echo "$installer_version" | cut -d- -f1)
 installer_version_suffix=$(echo "$installer_version" | cut -d- -f2- -s)
+git fetch
 git checkout --force "$installer_sha"
 repos=(
     runtime:Microsoft.NETCore.App.Ref:true
