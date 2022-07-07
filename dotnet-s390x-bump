@@ -62,3 +62,4 @@ runtime_version_label=$(xmllint --xpath "$xpath" runtime/eng/Versions.props)
 echo "runtime_version_label=$runtime_version_label" >>dotnet-s390x-versions
 git add dotnet-s390x-versions
 git commit -m "Update to v$installer_version"
+git tag "v$installer_version"
