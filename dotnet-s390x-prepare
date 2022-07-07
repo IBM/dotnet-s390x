@@ -15,7 +15,7 @@ EOF
 }
 
 if [ ! -f nuget.exe ]; then
-	curl -o nuget.exe https://dist.nuget.org/win-x86-commandline/v4.9.4/nuget.exe
+    curl -o nuget.exe https://dist.nuget.org/win-x86-commandline/v4.9.4/nuget.exe
 fi
 ${NUGET} >/dev/null
 
@@ -31,19 +31,19 @@ need_msbuild=0
 git fetch
 # Enable building the net472 variant.
 if ! git merge-base --is-ancestor ceed7cab7523 HEAD; then
-	git cherry-pick ceed7cab7523
-	# Do not set need_msbuild: if this is the only patch we need, then the
-	# downloaded binaries are good enough.
+    git cherry-pick ceed7cab7523
+    # Do not set need_msbuild: if this is the only patch we need, then the
+    # downloaded binaries are good enough.
 fi
 # https://github.com/dotnet/msbuild/pull/7731
 if git merge-base --is-ancestor 67deba37040a HEAD && \
-		! git merge-base --is-ancestor 486a4599f4a5 HEAD; then
-	git cherry-pick 486a4599f4a5
-	need_msbuild=1
+        ! git merge-base --is-ancestor 486a4599f4a5 HEAD; then
+    git cherry-pick 486a4599f4a5
+    need_msbuild=1
 fi
 if [ "$need_msbuild" -eq 0 ]; then
-	touch .skip-build
-	touch .skip-package
+    touch .skip-build
+    touch .skip-package
 fi
 popd
 
@@ -51,12 +51,12 @@ pushd roslyn
 need_roslyn=0
 # https://github.com/dotnet/roslyn/pull/57003
 if ! git merge-base --is-ancestor d6eeb64a0191 HEAD; then
-	git cherry-pick d6eeb64a0191
-	need_roslyn=1
+    git cherry-pick d6eeb64a0191
+    need_roslyn=1
 fi
 if [ "$need_roslyn" -eq 0 ]; then
-	touch .skip-build
-	touch .skip-package
+    touch .skip-build
+    touch .skip-package
 fi
 popd
 
