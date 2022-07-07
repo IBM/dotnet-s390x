@@ -3,3 +3,5 @@ set -e -u x
 cd "$(dirname "$0")"
 git clean -dfx
 git submodule foreach --recursive 'git clean -dfx && git reset --hard'
+rm -rf ~/.nuget
+rm -rf ~/.local/share/NuGet

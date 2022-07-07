@@ -11,16 +11,9 @@ PACKAGESDIR=$BASEDIR/local-packages
 DOWNLOADDIR=$BASEDIR/local-downloads
 OUTPUTDIR=$BASEDIR/output
 
-if [[ -z ${SKIP_CLEAN+x} ]]; then
-    rm -rf ~/.nuget
-    rm -rf ~/.local/share/NuGet/
-    rm -rf "$PACKAGESDIR"
-    mkdir "$PACKAGESDIR"
-    rm -rf "$DOWNLOADDIR"
-    mkdir "$DOWNLOADDIR"
-    rm -rf "$OUTPUTDIR"
-    mkdir "$OUTPUTDIR"
-fi
+mkdir -p "$PACKAGESDIR"
+mkdir -p "$DOWNLOADDIR"
+mkdir -p "$OUTPUTDIR"
 
 ARCH=s390x
 CROSS=true
