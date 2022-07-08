@@ -1,0 +1,5 @@
+[Service]
+User=%I
+ExecStartPre=-/usr/bin/rm -r /tmp/dotnet-s390x
+ExecStartPre=/usr/bin/git clone git@github.ibm.com:ztoolchain/dotnet-s390x.git /tmp/dotnet-s390x
+ExecStart=/tmp/dotnet-s390x/dotnet-s390x-daily
