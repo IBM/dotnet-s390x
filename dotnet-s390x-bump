@@ -23,6 +23,7 @@ function echo_property {
     local property=$3
 
     value=$(xmllint --xpath "/Project/PropertyGroup/${property}/text()" "$path")
+    # shellcheck disable=SC2016
     if [ "${value:0:2}" = '$(' ] && [ "${value:${#value} - 1}" = ')' ]; then
         echo_property "$name" "$path" "${value:2:-1}"
     else
