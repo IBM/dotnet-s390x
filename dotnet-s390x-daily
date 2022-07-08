@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e -u -x
+
+cd "$(dirname "$0")"
+docker/run ./dotnet-s390x-cleanup
+docker/run ./dotnet-s390x-bump
+docker/run ./dotnet-s390x-prepare
+docker/run ./dotnet-s390x-build
+docker/run ./dotnet-s390x-release
