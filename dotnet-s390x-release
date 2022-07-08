@@ -1,17 +1,11 @@
 #!/bin/bash
 set -e -u -x
 
-pushd "$(dirname "$0")"
-. dotnet-s390x-versions
-popd
-
 tag=$(git describe --exact-match --tags)
 [ "${tag:0:1}" == "v" ] || exit 1
-version=${tag:1}
 
 git push origin "$tag"
 gh release create \
     --notes "" \
     "$tag" \
-    output/dotnet-runtime-"$runtime_version"-linux-s390x.tar.gz \
-    output/dotnet-sdk-"$version"-linux-s390x.tar.gz
+    output/*
