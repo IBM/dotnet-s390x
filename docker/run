@@ -12,7 +12,7 @@ exec docker run \
     --env=HOME="$HOME" \
     --interactive \
     --rm \
-    --tty \
+    $([ ! -t 0 ] || echo --tty) \
     --ulimit=nofile=16384 \
     --volume="$basedir:$basedir:z" \
     --volume="$HOME:$HOME:z" \
