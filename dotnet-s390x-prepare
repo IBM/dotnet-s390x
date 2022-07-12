@@ -45,6 +45,7 @@ git submodule update --init --recursive
 pushd runtime
 git fetch
 git cherry-pick --keep-redundant-commits 32670bdf9973  # https://github.com/dotnet/runtime/pull/70346
+rm -rf .pc
 ln -fsT ../runtime-patches patches
 quilt push -a
 popd
