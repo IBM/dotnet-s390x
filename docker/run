@@ -20,4 +20,4 @@ exec docker run \
     --volume="$basedir/home/.local/share/NuGet:$HOME/.local/share/NuGet:z" \
     --workdir="$basedir" \
     "$iid" \
-    bash -c "groupadd -g $(id -g) $(id -ng) && useradd -u $(id -u) -g $(id -g) $(id -nu) && exec runuser -u $(id -nu) -- \"\$@\"" -- "$@"
+    bash -c "groupadd -g $(id -g) $(id -ng) ; useradd -u $(id -u) -g $(id -g) $(id -nu) ; exec runuser -u $(id -nu) -- \"\$@\"" -- "$@"
