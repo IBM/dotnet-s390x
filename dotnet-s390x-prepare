@@ -90,6 +90,9 @@ popd
 
 pushd installer
 update_nuget_config
+rm -rf .pc
+ln -fsT ../installer-patches patches
+quilt push -a
 popd
 
 install_host_sdk runtime
