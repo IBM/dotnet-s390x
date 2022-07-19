@@ -10,6 +10,7 @@ docker build --iidfile="$iidfile" "$basedir"/docker/image
 iid=$(cat "$iidfile")
 exec docker run \
     --env=HOME="$HOME" \
+    --init \
     --interactive \
     --rm \
     $([ ! -t 0 ] || echo --tty) \
