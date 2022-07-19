@@ -42,8 +42,10 @@ RUN dpkg --add-architecture s390x && \
         binutils-s390x-linux-gnu \
         clang-$llvm_version \
         gawk \
+        gdb \
         git \
         jq \
+        less \
         libgcc-8-dev-s390x-cross \
         libicu-dev:s390x \
         libkrb5-dev:s390x \
@@ -63,6 +65,7 @@ RUN dpkg --add-architecture s390x && \
         python3 \
         quilt \
         ssh \
+        strace \
         tmux \
         vim \
         wget \
