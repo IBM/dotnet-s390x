@@ -1,29 +1,13 @@
-From 15707929e4fe10de54c5e8ac659e229ddf3ba6e1 Mon Sep 17 00:00:00 2001
+From 4d22d7553e63f2be966ba8aac8998182e947ed8b Mon Sep 17 00:00:00 2001
 From: Ilya Leoshkevich <iii@linux.ibm.com>
 Date: Tue, 19 Jul 2022 12:32:29 +0200
 Subject: [PATCH] Fix ArcadeBuildTarball on s390x
 
-* Add s390x buildarch.
-* Do not install 2.1.0 framework, since it's not supported on s390x.
+Do not install 2.1.0 framework, since it's not supported on s390x.
 ---
- eng/common/dotnet-install.sh | 3 +++
- eng/restore-toolset.sh       | 4 +++-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ eng/restore-toolset.sh | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/eng/common/dotnet-install.sh b/eng/common/dotnet-install.sh
-index abd045a32..6927ca974 100755
---- a/eng/common/dotnet-install.sh
-+++ b/eng/common/dotnet-install.sh
-@@ -67,6 +67,9 @@ case $cpuname in
-   i[3-6]86)
-     buildarch=x86
-     ;;
-+  s390x)
-+    buildarch=s390x
-+    ;;
-   *)
-     echo "Unknown CPU $cpuname detected, treating it as x64"
-     buildarch=x64
 diff --git a/eng/restore-toolset.sh b/eng/restore-toolset.sh
 index 42ee4d364..0a19de3d8 100644
 --- a/eng/restore-toolset.sh
