@@ -62,6 +62,7 @@ RUN dpkg --add-architecture s390x && \
         mono-devel \
         ninja-build \
         nodejs \
+        psmisc \
         python3 \
         quilt \
         ssh \
