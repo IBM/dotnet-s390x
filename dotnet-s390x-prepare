@@ -2,7 +2,6 @@
 set -e -u -x
 
 BASEDIR=$(pwd)
-NUGET="mono ${BASEDIR}/nuget.exe"
 PACKAGESDIR=${BASEDIR}/local-packages
 
 function update_nuget_config {
@@ -34,11 +33,6 @@ function install_host_sdk {
     mkdir -p "$root"
     tar -C "$root" -xf "$tgz"
 }
-
-if [ ! -f nuget.exe ]; then
-    curl -o nuget.exe https://dist.nuget.org/win-x86-commandline/v4.9.4/nuget.exe
-fi
-${NUGET} >/dev/null
 
 git submodule update --init --recursive
 

@@ -6,7 +6,6 @@ pushd "$(dirname "$0")"
 popd
 
 BASEDIR=$(pwd)
-NUGET="mono $BASEDIR/nuget.exe"
 PACKAGESDIR=$BASEDIR/local-packages
 DOWNLOADDIR=$BASEDIR/local-downloads
 OUTPUTDIR=$BASEDIR/output
@@ -42,9 +41,9 @@ if [ -z ${SKIP_BUILD_RUNTIME+x} ] && [ ! -e .skip-build ]; then
     ROOTFS_DIR=/ ./build.sh "${runtime_build_flags[@]}"
 fi
 if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
-    $NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" -Source "$PACKAGESDIR"
-    $NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" -Source "$PACKAGESDIR"
-    $NUGET add "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Ref.$runtime_version.nupkg" -Source "$PACKAGESDIR"
+    cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" "$PACKAGESDIR"
+    cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" "$PACKAGESDIR"
+    cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Ref.$runtime_version.nupkg" "$PACKAGESDIR"
     mkdir -p "$DOWNLOADDIR/Runtime/$runtime_version"
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$DOWNLOADDIR/Runtime/$runtime_version"
     # Necessary for incoherent packages: pretend that the runtime that we built
@@ -87,7 +86,7 @@ if [ -z ${SKIP_BUILD_MSBUILD+x} ] && [ ! -e .skip-build ]; then
         $msbuild_build_flags
 fi
 if [ -z ${SKIP_PACKAGE_MSBUILD+x} ] && [ ! -e .skip-package ]; then
-    for I in artifacts/packages/Release/*/*; do $NUGET add "$I" -Source "$PACKAGESDIR"; done
+    for I in artifacts/packages/Release/*/*; do cp "$I" "$PACKAGESDIR"; done
 fi
 popd
 
@@ -106,7 +105,7 @@ if [ -z ${SKIP_BUILD_ROSLYN+x} ] && [ ! -e .skip-build ]; then
         $roslyn_build_flags
 fi
 if [ -z ${SKIP_PACKAGE_ROSLYN+x} ] && [ ! -e .skip-package ]; then
-    for I in artifacts/packages/Release/*/*.nupkg; do $NUGET add "$I" -Source "$PACKAGESDIR"; done
+    for I in artifacts/packages/Release/*/*.nupkg; do cp "$I" "$PACKAGESDIR"; done
 fi
 popd
 
@@ -159,11 +158,11 @@ if [ -z ${SKIP_BUILD_ASPNETCORE+x} ] && [ ! -e .skip-build ]; then
     done
 fi
 if [ -z ${SKIP_PACKAGE_ASPNETCORE+x} ] && [ ! -e .skip-package ]; then
-    $NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
-    $NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Ref.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
-    $NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ItemTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
-    $NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
-    $NUGET add "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" -Source "$PACKAGESDIR"
+    cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
+    cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Ref.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
+    cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ItemTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
+    cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
+    cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
     mkdir -p "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
     cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
     cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore_base_runtime.version" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
