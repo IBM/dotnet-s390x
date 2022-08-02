@@ -92,6 +92,7 @@ RUN dpkg --add-architecture s390x && \
         ssh \
         strace \
         tmux \
+        unzip \
         vim \
         wget \
         yarn \
