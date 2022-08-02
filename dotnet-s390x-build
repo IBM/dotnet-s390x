@@ -21,6 +21,9 @@ runtime_build_flags=(
     -c "$RUNTIME_CONF"
     -clang
     -keepnativesymbols true
+    --cmakeargs -DFEATURE_GDBJIT=true
+    --cmakeargs -DFEATURE_GDBJIT_FRAME=true
+    --cmakeargs -DFEATURE_GDBJIT_SYMTAB=true
 )
 if "$CROSS"; then
     runtime_build_flags+=(
