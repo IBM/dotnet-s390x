@@ -24,6 +24,7 @@ runtime_build_flags=(
     --cmakeargs -DFEATURE_GDBJIT=true
     --cmakeargs -DFEATURE_GDBJIT_FRAME=true
     --cmakeargs -DFEATURE_GDBJIT_SYMTAB=true
+    /p:DotNetUseShippingVersions=true
 )
 if "$CROSS"; then
     runtime_build_flags+=(
