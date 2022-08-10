@@ -1,6 +1,6 @@
-installer_version=7.0.100-rc.1.22405.9
+installer_version=7.0.100-rc.1.22410.4
 installer_version_prefix=7.0.100
-installer_version_suffix=rc.1.22405.9
+installer_version_suffix=rc.1.22410.4
 installer_major_version=7
 installer_minor_version=0
 runtime_version=7.0.0-rc.1.22403.8
