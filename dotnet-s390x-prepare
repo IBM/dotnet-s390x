@@ -89,9 +89,9 @@ popd
 
 pushd installer
 update_nuget_config
-rm -rf .pc
-ln -fsT ../installer-patches patches
-quilt push -a
+if ! git merge-base --is-ancestor 5501c7f23811 HEAD; then
+    git cherry-pick 5501c7f23811
+fi
 popd
 
 install_host_sdk runtime
