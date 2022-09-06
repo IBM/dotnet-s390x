@@ -18,6 +18,7 @@ ARCH=s390x
 CROSS=true
 RUNTIME_CONF=Release
 runtime_build_flags=(
+    --ci
     -c "$RUNTIME_CONF"
     -clang
     -keepnativesymbols true
@@ -25,6 +26,7 @@ runtime_build_flags=(
     --cmakeargs -DFEATURE_GDBJIT_FRAME=true
     --cmakeargs -DFEATURE_GDBJIT_SYMTAB=true
     /p:DotNetUseShippingVersions=true
+    /p:OfficialBuildId="$runtime_build_id"
 )
 if "$CROSS"; then
     runtime_build_flags+=(
@@ -32,16 +34,12 @@ if "$CROSS"; then
         -cross
     )
 fi
-if [ "$runtime_version_suffix" != "" ]; then
-    runtime_build_flags+=(/p:VersionSuffix="$runtime_version_suffix")
-fi
 # https://github.com/dotnet/arcade/issues/9846
 if [ "$ARCH" = "s390x" ] && ! "$CROSS"; then
     runtime_build_flags+=(/p:RunApiCompat=false)
 fi
 pushd runtime
 if [ -z ${SKIP_BUILD_RUNTIME+x} ] && [ ! -e .skip-build ]; then
-    # shellcheck disable=SC2046,SC2086
     ROOTFS_DIR=/ ./build.sh "${runtime_build_flags[@]}"
 fi
 if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
@@ -77,36 +75,37 @@ fi
 popd
 
 MSBUILD_CONF=Release
-msbuild_build_flags=""
-if [ "$msbuild_version_suffix" != "" ]; then
-    msbuild_build_flags="$msbuild_build_flags /p:VersionSuffix=$msbuild_version_suffix"
-fi
+msbuild_build_flags=(
+    --ci
+    --restore
+    --pack
+    --configuration "$MSBUILD_CONF"
+    /p:OfficialBuildId="$msbuild_build_id"
+    /p:EnableNgenOptimization=false
+)
 pushd msbuild
 if [ -z ${SKIP_BUILD_MSBUILD+x} ] && [ ! -e .skip-build ]; then
-    # shellcheck disable=SC2086
-    ./build.sh \
-        --pack \
-        -c "$MSBUILD_CONF" \
-        $msbuild_build_flags
+    ./build.sh "${msbuild_build_flags[@]}"
 fi
 if [ -z ${SKIP_PACKAGE_MSBUILD+x} ] && [ ! -e .skip-package ]; then
     for I in artifacts/packages/Release/*/*; do cp "$I" "$PACKAGESDIR"; done
 fi
 popd
 
+ROSLYN_CONF=Release
 pushd roslyn
-roslyn_build_flags=""
-if [ "$roslyn_version_suffix" != "" ]; then
-    roslyn_build_flags="$roslyn_build_flags /p:VersionSuffix=$roslyn_version_suffix"
-fi
+roslyn_build_flags=(
+    --ci
+    --restore
+    --build
+    --pack
+    --binaryLog
+    --configuration "$ROSLYN_CONF"
+    /p:OfficialBuildId="$roslyn_build_id"
+    /p:EnableNgenOptimization=false
+)
 if [ -z ${SKIP_BUILD_ROSLYN+x} ] && [ ! -e .skip-build ]; then
-    # shellcheck disable=SC2086
-    ./eng/build.sh \
-        --restore \
-        --build \
-        --pack \
-        -c Release \
-        $roslyn_build_flags
+    ./eng/build.sh "${roslyn_build_flags[@]}"
 fi
 if [ -z ${SKIP_PACKAGE_ROSLYN+x} ] && [ ! -e .skip-package ]; then
     for I in artifacts/packages/Release/*/*.nupkg; do cp "$I" "$PACKAGESDIR"; done
@@ -115,19 +114,19 @@ popd
 
 SDK_CONF=Release
 SDK_VERSION=$sdk_version_prefix
-sdk_build_flags=""
+sdk_build_flags=(
+    --ci
+    --pack
+    --configuration "$SDK_CONF"
+    /p:Architecture="$ARCH"
+    /p:OfficialBuildId="$sdk_build_id"
+)
 if [ "$sdk_version_suffix" != "" ]; then
     SDK_VERSION=$SDK_VERSION-$sdk_version_suffix
-    sdk_build_flags="$sdk_build_flags /p:VersionSuffix=$sdk_version_suffix"
 fi
 pushd sdk
 if [ -z ${SKIP_BUILD_SDK+x} ] && [ ! -e .skip-build ]; then
-    # shellcheck disable=SC2086
-    ./build.sh \
-        --pack \
-        -c "$SDK_CONF" \
-        /p:Architecture="$ARCH" \
-        $sdk_build_flags
+    ./build.sh "${sdk_build_flags[@]}"
 fi
 if [ -z ${SKIP_PACKAGE_SDK+x} ] && [ ! -e .skip-package ]; then
     mkdir -p "$DOWNLOADDIR/Sdk/$SDK_VERSION"
@@ -138,22 +137,24 @@ popd
 ASPNETCORE_CONF=Release
 ASPNETCORE_VERSION=$aspnetcore_version_prefix
 aspnetcore_major_minor_version=$aspnetcore_major_version.$aspnetcore_minor_version
-aspnetcore_build_flags=""
+aspnetcore_build_flags=(
+    --ci
+    --configuration "$ASPNETCORE_CONF"
+    --pack
+    /p:DotNetAssetRootUrl="file://$DOWNLOADDIR/"
+    /p:OfficialBuildId="$aspnetcore_build_id"
+)
 if [ "$aspnetcore_version_suffix" != "" ]; then
     ASPNETCORE_VERSION=$ASPNETCORE_VERSION-$aspnetcore_version_suffix
-    aspnetcore_build_flags="$aspnetcore_build_flags /p:VersionSuffix=$aspnetcore_version_suffix"
+fi
+if "$CROSS"; then
+    aspnetcore_build_flags+=(-arch "$ARCH")
 fi
 pushd aspnetcore
 if [ -z ${SKIP_BUILD_ASPNETCORE+x} ] && [ ! -e .skip-build ]; then
     # Run build script multiple times to work around yarn race condition
     for i in $(seq 1 3); do
-        # shellcheck disable=SC2046,SC2086
-        if ./eng/build.sh \
-                $("$CROSS" && echo -arch "$ARCH") \
-                -c "$ASPNETCORE_CONF" \
-                --pack \
-                /p:DotNetAssetRootUrl="file://$DOWNLOADDIR/" \
-                $aspnetcore_build_flags; then
+        if ./eng/build.sh "${aspnetcore_build_flags[@]}"; then
             break
         fi
         if [ "$i" -eq 3 ]; then
@@ -176,24 +177,24 @@ popd
 
 INSTALLER_CONF=Release
 INSTALLER_VERSION=$installer_version_prefix
-installer_build_flags=""
+installer_build_flags=(
+    --ci
+    --configuration "$INSTALLER_CONF"
+    /p:HostRid=linux-x64
+    /p:Architecture="$ARCH"
+    /p:PublicBaseURL="file://$DOWNLOADDIR/"
+    /p:CoreSetupBlobRootUrl="file://$DOWNLOADDIR/"
+    /p:DotnetToolsetBlobRootUrl="file://$DOWNLOADDIR/"
+    /p:OfficialBuildId="$installer_build_id"
+)
 if [ "$installer_version_suffix" != "" ]; then
     INSTALLER_VERSION=$INSTALLER_VERSION-$installer_version_suffix
-    installer_build_flags="$installer_build_flags /p:VersionSuffix=$installer_version_suffix"
 fi
 pushd installer
 if [ -z ${SKIP_BUILD_INSTALLER+x} ] && [ ! -e .skip-build ]; then
     rm -rf artifacts
     # Setting HostRid to linux- instead of ubuntu- avoids requiring Debian installer packages
-    # shellcheck disable=SC2086
-    ./build.sh \
-        -c "$INSTALLER_CONF" \
-        /p:HostRid=linux-x64 \
-        /p:Architecture="$ARCH" \
-        /p:PublicBaseURL="file://$DOWNLOADDIR/" \
-        /p:CoreSetupBlobRootUrl="file://$DOWNLOADDIR/" \
-        /p:DotnetToolsetBlobRootUrl="file://$DOWNLOADDIR/" \
-        $installer_build_flags
+    ./build.sh "${installer_build_flags[@]}"
 fi
 if [ -z ${SKIP_PACKAGE_INSTALLER+x} ] && [ ! -e .skip-package ]; then
     cp "artifacts/packages/$INSTALLER_CONF/Shipping/dotnet-sdk-$INSTALLER_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
