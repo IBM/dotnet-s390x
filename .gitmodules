@@ -16,3 +16,6 @@
 [submodule "roslyn"]
 	path = roslyn
 	url = https://github.com/dotnet/roslyn
+[submodule "templating"]
+	path = templating
+	url = https://github.com/dotnet/templating

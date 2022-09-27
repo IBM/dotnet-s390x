@@ -61,25 +61,26 @@ installer_version=$(echo "$installer_sha_version" | awk -F", " '{print $2}')
 git fetch
 git checkout --force "$installer_sha"
 repos=(
-    runtime:Microsoft.NETCore.App.Ref:true
-    msbuild:Microsoft.Build:true
-    roslyn:Microsoft.Net.Compilers.Toolset:true
-    sdk:Microsoft.NET.Sdk:true
-    aspnetcore:Microsoft.AspNetCore.App.Ref:true
-    aspnetcore_internal:Microsoft.AspNetCore.App.Ref.Internal:false
+    runtime:installer:Microsoft.NETCore.App.Ref:true
+    msbuild:installer:Microsoft.Build:true
+    roslyn:installer:Microsoft.Net.Compilers.Toolset:true
+    sdk:installer:Microsoft.NET.Sdk:true
+    aspnetcore:installer:Microsoft.AspNetCore.App.Ref:true
+    aspnetcore_internal:installer:Microsoft.AspNetCore.App.Ref.Internal:false
+    templating:sdk:Microsoft.TemplateEngine.Abstractions:true
 )
 cd ..
 echo_version installer "$installer_version" >dotnet-s390x-versions
 git add installer
 for repo in "${repos[@]}"; do
     IFS=: read -r -a path_name <<< "$repo"
-    xpath="string(/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[1]}\"]/@Version)"
-    version=$(xmllint --xpath "$xpath" installer/eng/Version.Details.xml)
-    if "${path_name[2]}"; then
+    xpath="string(/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[2]}\"]/@Version)"
+    version=$(xmllint --xpath "$xpath" "${path_name[1]}"/eng/Version.Details.xml)
+    if "${path_name[3]}"; then
         cd "${path_name[0]}"
         git fetch
-        xpath="/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[1]}\"]/Sha/text()"
-        sha=$(xmllint --xpath "$xpath" ../installer/eng/Version.Details.xml)
+        xpath="/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[2]}\"]/Sha/text()"
+        sha=$(xmllint --xpath "$xpath" ../"${path_name[1]}"/eng/Version.Details.xml)
         git checkout --force "$sha"
         cd ..
         git add "${path_name[0]}"
