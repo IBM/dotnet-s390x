@@ -44,6 +44,19 @@ function echo_property {
     fi
 }
 
+platform=7.0.1xx
+while [ $# -gt 0 ]; do
+    case "$1" in
+    --platform)
+        shift
+        platform=$1
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
 if [ $# -gt 0 ]; then
     installer_version=$1
     shift
@@ -51,7 +64,7 @@ fi
 git submodule update --init --recursive
 cd installer
 if [[ -z ${installer_version+x} ]]; then
-    url=https://aka.ms/dotnet/7.0.1xx/daily/productCommit-linux-x64.txt
+    url=https://aka.ms/dotnet/$platform/daily/productCommit-linux-x64.txt
 else
     url=https://dotnetbuilds.azureedge.net/public/Sdk/$installer_version/productCommit-linux-x64.txt
 fi
