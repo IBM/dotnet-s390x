@@ -1,5 +1,8 @@
 [Service]
 User=%I
-ExecStartPre=-/usr/bin/rm -r /tmp/dotnet-s390x
-ExecStartPre=/usr/bin/git clone git@github.ibm.com:ztoolchain/dotnet-s390x.git /tmp/dotnet-s390x
-ExecStart=/tmp/dotnet-s390x/dotnet-s390x-daily
+Type=oneshot
+ExecStart=-/usr/bin/rm -r /tmp/dotnet-s390x
+ExecStart=/usr/bin/git clone git@github.ibm.com:ztoolchain/dotnet-s390x.git /tmp/dotnet-s390x
+ExecStart=-/tmp/dotnet-s390x/dotnet-s390x-daily --platform 7.0.1xx
+ExecStart=/usr/bin/git -C /tmp/dotnet-s390x checkout origin/master
+ExecStart=-/tmp/dotnet-s390x/dotnet-s390x-daily --platform 8.0.1xx
