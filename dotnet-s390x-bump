@@ -70,12 +70,17 @@ else
 fi
 manifest=$(curl -L "$url")
 # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
-[[ "$manifest" =~ installer:([0-9a-f]+),\ ([^[:space:]]+) ]] || \
-[[ "$manifest" =~ installer_commit=\"([0-9a-f]+)\"\ installer_version=\"([^\"]+)\" ]]
-installer_sha=${BASH_REMATCH[1]}
-installer_version=${BASH_REMATCH[2]}
-git fetch
-git checkout --force "$installer_sha"
+# installer_commit="c8d103ed3c46cca9bb78098da723037e2be73bce" installer_version="8.0.100-alpha.1.23061.8"
+if [[ "$manifest" =~ installer:([0-9a-f]+),\ ([^[:space:]]+) ]] || \
+   [[ "$manifest" =~ installer_commit=\"([0-9a-f]+)\"\ installer_version=\"([^\"]+)\" ]]; then
+    installer_sha=${BASH_REMATCH[1]}
+    installer_version=${BASH_REMATCH[2]}
+    git fetch
+    git checkout --force "$installer_sha"
+else
+    git fetch --tags
+    git checkout --force "v$installer_version"
+fi
 repos=(
     runtime:installer:Microsoft.NETCore.App.Ref:true
     msbuild:installer:Microsoft.Build:true
