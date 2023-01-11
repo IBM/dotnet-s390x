@@ -26,8 +26,10 @@ runtime_build_flags=(
     --cmakeargs -DFEATURE_GDBJIT_FRAME=true
     --cmakeargs -DFEATURE_GDBJIT_SYMTAB=true
     /p:DotNetUseShippingVersions=true
-    /p:OfficialBuildId="$runtime_build_id"
 )
+if [ "$runtime_build_id" != ""]; then
+    runtime_build_flags+=(/p:OfficialBuildId="$runtime_build_id")
+fi
 if "$CROSS"; then
     runtime_build_flags+=(
         -arch "$ARCH"
@@ -80,9 +82,11 @@ msbuild_build_flags=(
     --restore
     --pack
     --configuration "$MSBUILD_CONF"
-    /p:OfficialBuildId="$msbuild_build_id"
     /p:EnableNgenOptimization=false
 )
+if [ "$msbuild_build_id" != "" ]; then
+    msbuild_build_flags+=(/p:OfficialBuildId="$msbuild_build_id")
+fi
 pushd msbuild
 if [ -z ${SKIP_BUILD_MSBUILD+x} ] && [ ! -e .skip-build ]; then
     ./build.sh "${msbuild_build_flags[@]}"
@@ -101,9 +105,11 @@ roslyn_build_flags=(
     --pack
     --binaryLog
     --configuration "$ROSLYN_CONF"
-    /p:OfficialBuildId="$roslyn_build_id"
     /p:EnableNgenOptimization=false
 )
+if [ "$roslyn_build_id" != "" ]; then
+    roslyn_build_flags+=(/p:OfficialBuildId="$roslyn_build_id")
+fi
 if [ -z ${SKIP_BUILD_ROSLYN+x} ] && [ ! -e .skip-build ]; then
     ./eng/build.sh "${roslyn_build_flags[@]}"
 fi
@@ -119,8 +125,10 @@ sdk_build_flags=(
     --pack
     --configuration "$SDK_CONF"
     /p:Architecture="$ARCH"
-    /p:OfficialBuildId="$sdk_build_id"
 )
+if [ "$sdk_build_id" != "" ]; then
+    sdk_build_flags+=(/p:OfficialBuildId="$sdk_build_id")
+fi
 if [ "$sdk_version_suffix" != "" ]; then
     SDK_VERSION=$SDK_VERSION-$sdk_version_suffix
 fi
@@ -142,8 +150,10 @@ aspnetcore_build_flags=(
     --configuration "$ASPNETCORE_CONF"
     --pack
     /p:DotNetAssetRootUrl="file://$DOWNLOADDIR/"
-    /p:OfficialBuildId="$aspnetcore_build_id"
 )
+if [ "$aspnetcore_build_id" != "" ]; then
+    aspnetcore_build_flags+=(/p:OfficialBuildId="$aspnetcore_build_id")
+fi
 if [ "$aspnetcore_version_suffix" != "" ]; then
     ASPNETCORE_VERSION=$ASPNETCORE_VERSION-$aspnetcore_version_suffix
 fi
@@ -186,8 +196,10 @@ installer_build_flags=(
     /p:PublicBaseURL="file://$DOWNLOADDIR/"
     /p:CoreSetupBlobRootUrl="file://$DOWNLOADDIR/"
     /p:DotnetToolsetBlobRootUrl="file://$DOWNLOADDIR/"
-    /p:OfficialBuildId="$installer_build_id"
 )
+if [ "$installer_build_id" != "" ]; then
+    installer_build_flags+=(/p:OfficialBuildId="$installer_build_id")
+fi
 if [ "$installer_version_suffix" != "" ]; then
     INSTALLER_VERSION=$INSTALLER_VERSION-$installer_version_suffix
 fi

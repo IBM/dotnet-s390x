@@ -16,18 +16,22 @@ function echo_version {
     minor_version=$(echo "$version_prefix" | cut -d. -f2)
     echo "${name}_minor_version=$minor_version"
 
-    short_date=$(echo "$version_suffix" | cut -d- -f2)
-    if [ "$short_date" == "$version_suffix" ]; then
-        short_date=$(echo "$version_suffix" | rev | cut -d. -f2 | rev)
-        revision=$(echo "$version_suffix" | rev | cut -d. -f1 | rev)
+    if [ -n "$version_suffix" ]; then
+        short_date=$(echo "$version_suffix" | cut -d- -f2)
+        if [ "$short_date" == "$version_suffix" ]; then
+            short_date=$(echo "$version_suffix" | rev | cut -d. -f2 | rev)
+            revision=$(echo "$version_suffix" | rev | cut -d. -f1 | rev)
+        else
+            revision=$(echo "$version_suffix" | cut -d- -f3)
+        fi
+        yy=$((short_date / 1000))
+        mm=$(((short_date - 1000 * yy) / 50))
+        dd=$((short_date - 1000 * yy - 50 * mm))
+        echo -n "${name}_build_id="
+        printf "20%02d%02d%02d.%s\n" "$yy" "$mm" "$dd" "$revision"
     else
-        revision=$(echo "$version_suffix" | cut -d- -f3)
+        echo "${name}_build_id="
     fi
-    yy=$((short_date / 1000))
-    mm=$(((short_date - 1000 * yy) / 50))
-    dd=$((short_date - 1000 * yy - 50 * mm))
-    echo -n "${name}_build_id="
-    printf "20%02d%02d%02d.%s\n" "$yy" "$mm" "$dd" "$revision"
 }
 
 function echo_property {
