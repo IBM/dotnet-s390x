@@ -68,9 +68,12 @@ if [[ -z ${installer_version+x} ]]; then
 else
     url=https://dotnetbuilds.azureedge.net/public/Sdk/$installer_version/productCommit-linux-x64.txt
 fi
-installer_sha_version=$(curl -L "$url" | grep ^installer: | cut -d: -f2)
-installer_sha=$(echo "$installer_sha_version" | cut -d, -f1)
-installer_version=$(echo "$installer_sha_version" | awk -F", " '{print $2}')
+manifest=$(curl -L "$url")
+# installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
+[[ "$manifest" =~ installer:([0-9a-f]+),\ ([^[:space:]]+) ]] || \
+[[ "$manifest" =~ installer_commit=\"([0-9a-f]+)\"\ installer_version=\"([^\"]+)\" ]]
+installer_sha=${BASH_REMATCH[1]}
+installer_version=${BASH_REMATCH[2]}
 git fetch
 git checkout --force "$installer_sha"
 repos=(
