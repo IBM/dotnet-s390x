@@ -79,7 +79,7 @@ if [[ "$manifest" =~ installer:([0-9a-f]+),\ ([^[:space:]]+) ]] || \
    [[ "$manifest" =~ installer_commit=\"([0-9a-f]+)\"\ installer_version=\"([^\"]+)\" ]]; then
     installer_sha=${BASH_REMATCH[1]}
     installer_version=${BASH_REMATCH[2]}
-    git fetch
+    git fetch --tags
     git checkout --force "$installer_sha"
 else
     git fetch --tags
@@ -103,7 +103,7 @@ for repo in "${repos[@]}"; do
     version=$(xmllint --xpath "$xpath" "${path_name[1]}"/eng/Version.Details.xml)
     if "${path_name[3]}"; then
         cd "${path_name[0]}"
-        git fetch
+        git fetch --tags
         xpath="/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[2]}\"]/Sha/text()"
         sha=$(xmllint --xpath "$xpath" ../"${path_name[1]}"/eng/Version.Details.xml)
         git checkout --force "$sha"
