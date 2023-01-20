@@ -15,7 +15,11 @@ mkdir -p "$DOWNLOADDIR"
 mkdir -p "$OUTPUTDIR"
 
 ARCH=s390x
-CROSS=true
+if [ "$(uname -m)" == s390x -a "$ARCH" == s390x ]; then
+    CROSS=false
+else
+    CROSS=true
+fi
 RUNTIME_CONF=Release
 runtime_build_flags=(
     --ci
