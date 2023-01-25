@@ -26,6 +26,7 @@ runtime_build_flags=(
     --cmakeargs "-DFEATURE_GDBJIT_FRAME=true"
     --cmakeargs "-DFEATURE_GDBJIT_SYMTAB=true"
     "/p:DotNetUseShippingVersions=true"
+    "/p:ContinuousIntegrationBuild=false"
 )
 if [ "$runtime_build_id" != "" ]; then
     runtime_build_flags+=("/p:OfficialBuildId=$runtime_build_id")
@@ -64,8 +65,8 @@ if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostPolicy.$runtime_version.nupkg" "$OUTPUTDIR"
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostResolver.$runtime_version.nupkg" "$OUTPUTDIR"
     if [ "$runtime_version_label" = servicing ]; then
-        cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILAsm.$runtime_version_prefix-dev.nupkg" "$OUTPUTDIR"
-        cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILDAsm.$runtime_version_prefix-dev.nupkg" "$OUTPUTDIR"
+        cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILAsm.$runtime_version_prefix-dev"*".nupkg" "$OUTPUTDIR"
+        cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILDAsm.$runtime_version_prefix-dev"*".nupkg" "$OUTPUTDIR"
     else
         cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version.nupkg" "$OUTPUTDIR"
         cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version.nupkg" "$OUTPUTDIR"
@@ -83,6 +84,7 @@ msbuild_build_flags=(
     --pack
     --configuration "$MSBUILD_CONF"
     "/p:EnableNgenOptimization=false"
+    "/p:ContinuousIntegrationBuild=false"
 )
 if [ "$msbuild_build_id" != "" ]; then
     msbuild_build_flags+=("/p:OfficialBuildId=$msbuild_build_id")
@@ -106,6 +108,7 @@ roslyn_build_flags=(
     --binaryLog
     --configuration "$ROSLYN_CONF"
     "/p:EnableNgenOptimization=false"
+    "/p:ContinuousIntegrationBuild=false"
 )
 if [ "$roslyn_build_id" != "" ]; then
     roslyn_build_flags+=("/p:OfficialBuildId=$roslyn_build_id")
@@ -125,6 +128,7 @@ sdk_build_flags=(
     --pack
     --configuration "$SDK_CONF"
     "/p:Architecture=$ARCH"
+    "/p:ContinuousIntegrationBuild=false"
 )
 if [ "$sdk_build_id" != "" ]; then
     sdk_build_flags+=("/p:OfficialBuildId=$sdk_build_id")
@@ -150,6 +154,7 @@ aspnetcore_build_flags=(
     --configuration "$ASPNETCORE_CONF"
     --pack
     "/p:DotNetAssetRootUrl=file://$DOWNLOADDIR/"
+    "/p:ContinuousIntegrationBuild=false"
 )
 if [ "$aspnetcore_build_id" != "" ]; then
     aspnetcore_build_flags+=("/p:OfficialBuildId=$aspnetcore_build_id")
@@ -196,6 +201,7 @@ installer_build_flags=(
     "/p:PublicBaseURL=file://$DOWNLOADDIR/"
     "/p:CoreSetupBlobRootUrl=file://$DOWNLOADDIR/"
     "/p:DotnetToolsetBlobRootUrl=file://$DOWNLOADDIR/"
+    "/p:ContinuousIntegrationBuild=false"
 )
 if [ "$installer_build_id" != "" ]; then
     installer_build_flags+=("/p:OfficialBuildId=$installer_build_id")
