@@ -45,9 +45,11 @@ if git merge-base --is-ancestor 7d562f9d2a42 HEAD && \
     git cherry-pick 2a38e2093ab2
 fi
 git cherry-pick --keep-redundant-commits eaf0bb292dfa  # https://github.com/dotnet/runtime/pull/72049
-rm -rf .pc
-ln -fsT ../runtime-patches patches
-quilt push -a
+if [ -s ../runtime-patches/series ]; then
+    rm -rf .pc
+    ln -fsT ../runtime-patches patches
+    quilt push -a
+fi
 popd
 
 pushd msbuild
