@@ -15,7 +15,7 @@ mkdir -p "$DOWNLOADDIR"
 mkdir -p "$OUTPUTDIR"
 
 ARCH=s390x
-if [ "$(uname -m)" == s390x -a "$ARCH" == s390x ]; then
+if [ "$(uname -m)" == s390x ] && [ "$ARCH" == s390x ]; then
     CROSS=false
 else
     CROSS=true
@@ -181,6 +181,12 @@ if "$CROSS"; then
 fi
 pushd aspnetcore
 if [ -z ${SKIP_BUILD_ASPNETCORE+x} ] && [ ! -e .skip-build ]; then
+    # Since commit 243f90d0bec5 ("Use Arcade's DownloadFiles task (#46039)")
+    # aspnetcore no longer supports downloading runtime from custom URLs.
+    mkdir -p artifacts/obj/Microsoft.AspNetCore.App.Runtime
+    cp "$DOWNLOADDIR/Runtime/$runtime_version/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" \
+       "$DOWNLOADDIR/Runtime/$aspnetcore_transport_version/dotnet-runtime-$aspnetcore_runtime_version-linux-$ARCH.tar.gz" \
+       artifacts/obj/Microsoft.AspNetCore.App.Runtime/
     # Run build script multiple times to work around yarn race condition
     for i in $(seq 1 3); do
         if ./eng/build.sh "${aspnetcore_build_flags[@]}"; then
