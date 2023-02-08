@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e -u -x
+set -e -u -x -o pipefail
+shopt -s extglob
 
 pushd "$(dirname "$0")"
 . dotnet-s390x-versions
@@ -71,8 +72,8 @@ if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostPolicy.$runtime_version.nupkg" "$OUTPUTDIR"
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostResolver.$runtime_version.nupkg" "$OUTPUTDIR"
     if [ "$runtime_version_label" = servicing ]; then
-        cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILAsm.$runtime_version_prefix-dev"*".nupkg" "$OUTPUTDIR"
-        cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILDAsm.$runtime_version_prefix-dev"*".nupkg" "$OUTPUTDIR"
+        cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
+        cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILDAsm.$runtime_version_prefix-"@(dev|ci)**".nupkg" "$OUTPUTDIR"
     else
         cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version.nupkg" "$OUTPUTDIR"
         cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version.nupkg" "$OUTPUTDIR"
