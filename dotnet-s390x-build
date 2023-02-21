@@ -18,6 +18,8 @@ mkdir -p "$OUTPUTDIR"
 ARCH=s390x
 if [ "$(uname -m)" == s390x ] && [ "$ARCH" == s390x ]; then
     CROSS=false
+elif [ "$(uname -m)" == x86_64 ] && [ "$ARCH" == x64 ]; then
+    CROSS=false
 else
     CROSS=true
 fi
