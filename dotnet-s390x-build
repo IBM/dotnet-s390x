@@ -29,11 +29,15 @@ runtime_build_flags=(
     -c "$RUNTIME_CONF"
     -clang
     -keepnativesymbols true
-    --cmakeargs "-DFEATURE_GDBJIT=true"
-    --cmakeargs "-DFEATURE_GDBJIT_FRAME=true"
-    --cmakeargs "-DFEATURE_GDBJIT_SYMTAB=true"
     "/p:DotNetUseShippingVersions=true"
 )
+if [ "$ARCH" = s390x ]; then
+    runtime_build_flags+=(
+        --cmakeargs "-DFEATURE_GDBJIT=true"
+        --cmakeargs "-DFEATURE_GDBJIT_FRAME=true"
+        --cmakeargs "-DFEATURE_GDBJIT_SYMTAB=true"
+    )
+fi
 if [ "$runtime_build_id" != "" ]; then
     runtime_build_flags+=(
         "/p:ContinuousIntegrationBuild=true"
