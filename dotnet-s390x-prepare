@@ -38,13 +38,19 @@ git submodule update --init --recursive
 
 pushd runtime
 git fetch
-git cherry-pick --keep-redundant-commits 32670bdf9973  # https://github.com/dotnet/runtime/pull/70346
+# https://github.com/dotnet/runtime/pull/70346
+if ! git merge-base --is-ancestor eaf0bb292dfa HEAD; then
+    git cherry-pick 32670bdf9973
+fi
 # https://github.com/dotnet/runtime/pull/70901
 if git merge-base --is-ancestor 7d562f9d2a42 HEAD && \
         ! git merge-base --is-ancestor 2a38e2093ab2 HEAD; then
     git cherry-pick 2a38e2093ab2
 fi
-git cherry-pick --keep-redundant-commits eaf0bb292dfa  # https://github.com/dotnet/runtime/pull/72049
+# https://github.com/dotnet/runtime/pull/72049
+if ! git merge-base --is-ancestor eaf0bb292dfa HEAD; then
+    git cherry-pick eaf0bb292dfa
+fi
 if [ -s ../runtime-patches/series ]; then
     rm -rf .pc
     ln -fsT ../runtime-patches patches
