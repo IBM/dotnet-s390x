@@ -90,6 +90,7 @@ RUN apt-get update && \
         yarn \
         zsh
 ARG deb_arch
+ARG gnu_arch
 RUN if [ "$deb_arch" = "" ]; then \
         apt-get update && \
         apt-get install --no-install-recommends --yes \
@@ -103,7 +104,7 @@ RUN if [ "$deb_arch" = "" ]; then \
         dpkg --add-architecture "$deb_arch" && \
         apt-get update && \
         apt-get install --no-install-recommends --yes \
-            binutils-"$deb_arch"-linux-gnu \
+            binutils-"$gnu_arch"-linux-gnu \
             libgcc-8-dev-"$deb_arch"-cross \
             libicu-dev:"$deb_arch" \
             libkrb5-dev:"$deb_arch" \
