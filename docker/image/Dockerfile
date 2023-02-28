@@ -60,24 +60,16 @@ RUN apt-get update && \
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
 COPY fs/ /
 ARG llvm_version=7
-RUN dpkg --add-architecture s390x && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install --no-install-recommends --yes \
         binutils-multiarch \
-        binutils-s390x-linux-gnu \
         clang-$llvm_version \
         gawk \
         git \
         jq \
         less \
-        libgcc-8-dev-s390x-cross \
-        libicu-dev:s390x \
-        libkrb5-dev:s390x \
-        liblttng-ust-dev:s390x \
         liblttng-ust0 \
         libssl-dev \
-        libssl-dev:s390x \
-        libstdc++-8-dev-s390x-cross \
         libxml2-utils \
         llvm-$llvm_version \
         locales \
@@ -96,8 +88,30 @@ RUN dpkg --add-architecture s390x && \
         vim \
         wget \
         yarn \
-        zlib1g-dev:s390x \
         zsh
+ARG deb_arch
+RUN if [ "$deb_arch" = "" ]; then \
+        apt-get update && \
+        apt-get install --no-install-recommends --yes \
+            libgcc-8-dev \
+            libicu-dev \
+            libkrb5-dev \
+            liblttng-ust-dev \
+            libstdc++-8-dev \
+            zlib1g-dev; \
+    else \
+        dpkg --add-architecture "$deb_arch" && \
+        apt-get update && \
+        apt-get install --no-install-recommends --yes \
+            binutils-"$deb_arch"-linux-gnu \
+            libgcc-8-dev-"$deb_arch"-cross \
+            libicu-dev:"$deb_arch" \
+            libkrb5-dev:"$deb_arch" \
+            liblttng-ust-dev:"$deb_arch" \
+            libssl-dev:"$deb_arch" \
+            libstdc++-8-dev-"$deb_arch"-cross \
+            zlib1g-dev:"$deb_arch"; \
+    fi
 ENV PATH=/usr/lib/llvm-$llvm_version/bin:$PATH
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen
 COPY --from=cmake /cmake/ /

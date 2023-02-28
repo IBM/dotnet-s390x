@@ -15,14 +15,15 @@ mkdir -p "$PACKAGESDIR"
 mkdir -p "$DOWNLOADDIR"
 mkdir -p "$OUTPUTDIR"
 
-ARCH=s390x
-if [ "$(uname -m)" == s390x ] && [ "$ARCH" == s390x ]; then
+ARCH=${ARCH-s390x}
+case "$ARCH on $(uname -m)" in
+"ppc64le on ppc64le" | "s390x on s390x" | "x64 on x86_64")
     CROSS=false
-elif [ "$(uname -m)" == x86_64 ] && [ "$ARCH" == x64 ]; then
-    CROSS=false
-else
+    ;;
+*)
     CROSS=true
-fi
+    ;;
+esac
 RUNTIME_CONF=Release
 runtime_build_flags=(
     --ci

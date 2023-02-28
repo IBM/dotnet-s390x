@@ -1,19 +1,28 @@
-#!/bin/sh
-set -e -u -x
+#!/bin/bash
+set -e -u -x -o pipefail
 basedir=$(cd "$(dirname "$0")"/.. && pwd)
 mkdir -p "$basedir"/home/.nuget
 mkdir -p "$basedir"/home/.local/share/NuGet
 workdir=$(mktemp -d)
 trap 'rm -r "$workdir"' EXIT
 iidfile=$workdir/iid
-docker build --iidfile="$iidfile" "$basedir"/docker/image
+ARCH=${ARCH-s390x}
+deb_arch=$ARCH
+case "$deb_arch on $(uname -m)" in
+"ppc64le on ppc64le" | "s390x on s390x" | "x64 on x86_64")
+    deb_arch=
+    ;;
+esac
+docker build --build-arg=deb_arch="$deb_arch" --iidfile="$iidfile" "$basedir"/docker/image
 iid=$(cat "$iidfile")
+read -ra tty_arg < <([ ! -t 0 ] || echo --tty)
 exec docker run \
+    --env=ARCH="$ARCH" \
     --env=HOME="$HOME" \
     --init \
     --interactive \
     --rm \
-    $([ ! -t 0 ] || echo --tty) \
+    "${tty_arg[@]}" \
     --ulimit=nofile=16384 \
     --volume="$basedir:$basedir:z" \
     --volume="$HOME:$HOME:z" \
