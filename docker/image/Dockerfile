@@ -70,17 +70,13 @@ RUN dpkg --add-architecture s390x && \
         git \
         jq \
         less \
-        libgcc-8-dev \
         libgcc-8-dev-s390x-cross \
         libicu-dev:s390x \
-        libkrb5-dev \
         libkrb5-dev:s390x \
-        liblttng-ust-dev \
         liblttng-ust-dev:s390x \
         liblttng-ust0 \
         libssl-dev \
         libssl-dev:s390x \
-        libstdc++-8-dev \
         libstdc++-8-dev-s390x-cross \
         libxml2-utils \
         llvm-$llvm_version \
@@ -100,16 +96,8 @@ RUN dpkg --add-architecture s390x && \
         vim \
         wget \
         yarn \
-        zlib1g-dev \
         zlib1g-dev:s390x \
         zsh
-# libicu-dev conflicts with libicu-dev:s390x because of /usr/bin/icu-config
-# (fixed in focal). Install libicu-dev:s390x first and then force overwrite.
-RUN apt-get update && \
-    apt-get install -y libiculx60 libicu-le-hb-dev && \
-    apt-get download libicu-dev && \
-    dpkg --force-conflicts -i libicu-dev*.deb && \
-    rm libicu-dev*.deb
 ENV PATH=/usr/lib/llvm-$llvm_version/bin:$PATH
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen
 COPY --from=cmake /cmake/ /
