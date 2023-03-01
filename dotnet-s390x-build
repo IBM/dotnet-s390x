@@ -32,7 +32,7 @@ runtime_build_flags=(
     -keepnativesymbols true
     "/p:DotNetUseShippingVersions=true"
 )
-if [ "$ARCH" = s390x ]; then
+if [ "$ARCH" = s390x ] || [ "$ARCH" = ppc64le ]; then
     runtime_build_flags+=(
         --cmakeargs "-DFEATURE_GDBJIT=true"
         --cmakeargs "-DFEATURE_GDBJIT_FRAME=true"
@@ -52,7 +52,7 @@ if "$CROSS"; then
     )
 fi
 # https://github.com/dotnet/arcade/issues/9846
-if [ "$ARCH" = "s390x" ] && ! "$CROSS"; then
+if { [ "$ARCH" = "s390x" ] || [ "$ARCH" = "ppc64le" ]; } && ! "$CROSS"; then
     runtime_build_flags+=("/p:RunApiCompat=false")
 fi
 pushd runtime
