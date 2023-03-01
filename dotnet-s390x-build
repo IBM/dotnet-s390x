@@ -86,7 +86,7 @@ if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
         cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version.nupkg" "$OUTPUTDIR"
     fi
     if [ "$ARCH" = s390x ]; then
-        cp artifacts/obj/mono/[Ll]inux."$ARCH".Release/out/lib/libmono-profiler-log.so "$OUTPUTDIR"
+        tar -C artifacts/obj/mono/[Ll]inux."$ARCH".Release/out/lib -czf "$OUTPUTDIR"/libmono-profiler-log-"$ARCH".tar.gz libmono-profiler-log.so
     fi
 fi
 popd
