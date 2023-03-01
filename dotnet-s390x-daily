@@ -5,5 +5,7 @@ cd "$(dirname "$0")"
 docker/run ./dotnet-s390x-cleanup
 docker/run ./dotnet-s390x-bump "$@"
 docker/run ./dotnet-s390x-prepare
-docker/run ./dotnet-s390x-build
+for arch in ppc64le s390x; do
+    ARCH="$arch" docker/run ./dotnet-s390x-build
+done
 docker/run ./dotnet-s390x-release
