@@ -20,7 +20,7 @@ case "$deb_arch on $(uname -m)" in
 esac
 docker build --build-arg=deb_arch="$deb_arch" --build-arg=gnu_arch="$gnu_arch" --iidfile="$iidfile" "$basedir"/docker/image
 iid=$(cat "$iidfile")
-read -ra tty_arg < <([ ! -t 0 ] || echo --tty)
+read -ra tty_arg < <([ ! -t 0 ] || echo --tty) || true
 exec docker run \
     --env=ARCH="$ARCH" \
     --env=HOME="$HOME" \
