@@ -39,7 +39,7 @@ git submodule update --init --recursive
 pushd runtime
 git fetch
 # https://github.com/dotnet/runtime/pull/70346
-if ! git merge-base --is-ancestor eaf0bb292dfa HEAD; then
+if ! git merge-base --is-ancestor 32670bdf9973 HEAD; then
     git cherry-pick 32670bdf9973
 fi
 # https://github.com/dotnet/runtime/pull/70901
@@ -48,11 +48,13 @@ if git merge-base --is-ancestor 7d562f9d2a42 HEAD && \
     git cherry-pick 2a38e2093ab2
 fi
 # https://github.com/dotnet/runtime/pull/72049
-if ! git merge-base --is-ancestor eaf0bb292dfa HEAD; then
+if git merge-base --is-ancestor 0e800a6139f1 HEAD && \
+        ! git merge-base --is-ancestor eaf0bb292dfa HEAD; then
     git cherry-pick eaf0bb292dfa
 fi
 # https://github.com/dotnet/runtime/pull/82173
-if ! git merge-base --is-ancestor 4e0ff826321d HEAD; then
+if git merge-base --is-ancestor f478cfe83eb5 HEAD && \
+        ! git merge-base --is-ancestor 4e0ff826321d HEAD; then
     git cherry-pick 4e0ff826321d
 fi
 # https://github.com/dotnet/runtime/pull/82678
