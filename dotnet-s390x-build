@@ -31,6 +31,7 @@ runtime_build_flags=(
     -clang
     -keepnativesymbols true
     "/p:DotNetUseShippingVersions=true"
+    "/p:DeterministicSourcePaths=false"
 )
 if [ "$ARCH" = s390x ] || [ "$ARCH" = ppc64le ]; then
     runtime_build_flags+=(
