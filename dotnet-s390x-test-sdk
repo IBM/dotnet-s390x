@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e -u -x
+workdir=$(mktemp -d)
+trap 'rm -r "$workdir"' EXIT
+tar -C "$workdir" -xf "$1"
+cd "$workdir"
+./dotnet --info
+./dotnet new console -o hello
+cd hello
+../dotnet build
+../dotnet run

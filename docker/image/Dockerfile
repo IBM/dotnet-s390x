@@ -118,3 +118,7 @@ RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen
 COPY --from=cmake /cmake/ /
 COPY --from=gh /cli/bin/gh /usr/bin/
 COPY --from=gdb /gdb/ /
+# Prevent qemu-user guests from reading the host ld.so.cache and crashing.
+ENV QEMU_LD_PREFIX=/usr/"$deb_arch"-linux-gnu
+RUN mkdir -p "$QEMU_LD_PREFIX"/etc
+RUN touch "$QEMU_LD_PREFIX"/etc/ld.so.cache

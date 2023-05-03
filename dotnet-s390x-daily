@@ -2,10 +2,12 @@
 set -e -u -x
 
 cd "$(dirname "$0")"
+docker run --rm --privileged multiarch/qemu-user-static:7.2.0-1 --reset --persistent=yes
 docker/run ./dotnet-s390x-cleanup
 docker/run ./dotnet-s390x-bump "$@"
 docker/run ./dotnet-s390x-prepare
 for arch in ppc64le s390x; do
     ARCH="$arch" docker/run ./dotnet-s390x-build
+    ARCH="$arch" docker/run ./dotnet-s390x-test-sdk ./output/dotnet-sdk-*-linux-"$arch".tar.gz
 done
 docker/run ./dotnet-s390x-release
