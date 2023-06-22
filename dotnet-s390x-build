@@ -231,6 +231,7 @@ installer_build_flags=(
     --configuration "$INSTALLER_CONF"
     "/p:HostRid=linux-x64"
     "/p:Architecture=$ARCH"
+    "/p:BundleRuntimePacks=true"
     "/p:PublicBaseURL=file://$DOWNLOADDIR/"
     "/p:CoreSetupBlobRootUrl=file://$DOWNLOADDIR/"
     "/p:DotnetToolsetBlobRootUrl=file://$DOWNLOADDIR/"
