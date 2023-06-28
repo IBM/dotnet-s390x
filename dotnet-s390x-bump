@@ -131,5 +131,5 @@ done
 } >>dotnet-s390x-versions
 
 git add dotnet-s390x-versions
-git commit -m "Update to v$installer_version"
+git commit --allow-empty -m "Update to v$installer_version"
 git tag "v$installer_version"
