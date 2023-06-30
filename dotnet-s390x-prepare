@@ -109,6 +109,11 @@ popd
 
 pushd sdk
 update_nuget_config
+# https://github.com/dotnet/sdk/pull/33682
+if git merge-base --is-ancestor b6ca751324b8 HEAD && \
+       ! git merge-base --is-ancestor ebc32022e152 HEAD; then
+    git cherry-pick ebc32022e152
+fi
 popd
 
 pushd installer
