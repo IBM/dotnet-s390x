@@ -66,6 +66,11 @@ if git merge-base --is-ancestor 93b487ad8075 HEAD && \
        ! git merge-base --is-ancestor 5cea3d67b9b1 HEAD; then
     git cherry-pick 5cea3d67b9b1
 fi
+# https://github.com/dotnet/runtime/pull/88145
+if git merge-base --is-ancestor 910362b50c34 HEAD && \
+	! git merge-base --is-ancestor 52bc96de5104 HEAD; then
+    git cherry-pick 52bc96de5104
+fi
 if [ -s ../runtime-patches/series ]; then
     rm -rf .pc
     ln -fsT ../runtime-patches patches
