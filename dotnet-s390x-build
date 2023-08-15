@@ -216,7 +216,10 @@ if [ -z ${SKIP_PACKAGE_ASPNETCORE+x} ] && [ ! -e .skip-package ]; then
     cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Ref.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
     cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ItemTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
     cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
-    cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
+    spa_templates=artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg
+    if [ -e "$spa_templates" ]; then
+        cp "$spa_templates" "$PACKAGESDIR"
+    fi
     mkdir -p "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
     cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
     cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz"
