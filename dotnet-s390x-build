@@ -220,9 +220,13 @@ if [ -z ${SKIP_PACKAGE_ASPNETCORE+x} ] && [ ! -e .skip-package ]; then
     if [ -e "$spa_templates" ]; then
         cp "$spa_templates" "$PACKAGESDIR"
     fi
+    aspnetcore_tgz=artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+    if [ ! -e "$aspnetcore_tgz" ]; then
+        aspnetcore_tgz=artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+    fi
     mkdir -p "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
-    cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
-    cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz"
+    cp "$aspnetcore_tgz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
+    cp "$aspnetcore_tgz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz"
     cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore_base_runtime.version" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
     cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" "$OUTPUTDIR"
 fi
