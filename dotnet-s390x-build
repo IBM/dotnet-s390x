@@ -30,6 +30,7 @@ runtime_build_flags=(
     -c "$RUNTIME_CONF"
     -clang
     -keepnativesymbols true
+    --usemonoruntime
     "/p:DotNetUseShippingVersions=true"
     "/p:DeterministicSourcePaths=false"
     "/p:SkipArchivesBuild=false"
