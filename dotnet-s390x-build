@@ -178,6 +178,7 @@ aspnetcore_build_flags=(
     --configuration "$ASPNETCORE_CONF"
     --pack
     "/p:DotNetAssetRootUrl=file://$DOWNLOADDIR/"
+    "/p:NuGetAudit=false"
 )
 if [ "$aspnetcore_build_id" != "" ]; then
     aspnetcore_build_flags+=(

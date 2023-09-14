@@ -6,9 +6,9 @@ PACKAGESDIR=${BASEDIR}/local-packages
 
 function update_nuget_config {
     gawk -f - -i inplace NuGet.config <<EOF
+    /<\/packageSources>/ { if (Src) print "    <add key=\"nuget\" value=\"https://api.nuget.org/v3/index.json\" />"; Src = 0 }
     { print }
     /<packageSources>/ { Src = 1 }
-    /<\/packageSources>/ { Src = 0 }
     /<clear \/>/ { if (Src) print "    <add key=\"local\" value=\"${PACKAGESDIR}\" />" }
 EOF
 }
@@ -119,6 +119,10 @@ if git merge-base --is-ancestor b6ca751324b8 HEAD && \
        ! git merge-base --is-ancestor ebc32022e152 HEAD; then
     git cherry-pick ebc32022e152
 fi
+popd
+
+pushd aspnetcore
+update_nuget_config
 popd
 
 pushd installer
