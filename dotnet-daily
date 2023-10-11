@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e -u -x
+
+cd "$(dirname "$0")"
+docker run --rm --privileged multiarch/qemu-user-static:7.2.0-1 --reset --persistent=yes
+docker/run ./dotnet-cleanup
+docker/run ./dotnet-bump "$@"
+docker/run ./dotnet-prepare
+for arch in ppc64le s390x x64; do
+    ARCH="$arch" docker/run ./dotnet-build
+    ARCH="$arch" docker/run ./dotnet-test-sdk ./output/dotnet-sdk-*-linux-"$arch".tar.gz
+done
+docker/run ./dotnet-release
