@@ -3,7 +3,7 @@ set -e -u -x -o pipefail
 shopt -s extglob
 
 pushd "$(dirname "$0")"
-. dotnet-s390x-versions
+. dotnet-versions
 popd
 
 BASEDIR=$(pwd)

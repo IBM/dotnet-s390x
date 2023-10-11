@@ -95,7 +95,7 @@ repos=(
     templating:sdk:Microsoft.TemplateEngine.Abstractions:true
 )
 cd ..
-echo_version installer "$installer_version" >dotnet-s390x-versions
+echo_version installer "$installer_version" >dotnet-versions
 git add installer
 for repo in "${repos[@]}"; do
     IFS=: read -r -a path_name <<< "$repo"
@@ -110,7 +110,7 @@ for repo in "${repos[@]}"; do
         cd ..
         git add "${path_name[0]}"
     fi
-    echo_version "${path_name[0]}" "$version" >>dotnet-s390x-versions
+    echo_version "${path_name[0]}" "$version" >>dotnet-versions
 done
 
 {
@@ -128,8 +128,8 @@ done
         runtime_version_label \
         runtime/eng/Versions.props \
         PreReleaseVersionLabel
-} >>dotnet-s390x-versions
+} >>dotnet-versions
 
-git add dotnet-s390x-versions
+git add dotnet-versions
 git commit --allow-empty -m "Update to v$installer_version"
 git tag "v$installer_version"
