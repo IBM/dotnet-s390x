@@ -72,7 +72,9 @@ if git merge-base --is-ancestor 910362b50c34 HEAD && \
     git cherry-pick 52bc96de5104
 fi
 # https://github.com/dotnet/runtime/pull/91008
-if ! git merge-base --is-ancestor f51b3979f5f4  HEAD; then
+if git merge-base --is-ancestor cab57d89a5d7 HEAD && \
+	! git merge-base --is-ancestor f51b3979f5f4 HEAD && \
+	! git merge-base --is-ancestor fe64d25f43e9 HEAD; then
     git cherry-pick f51b3979f5f4
 fi
 
