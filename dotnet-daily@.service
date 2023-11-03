@@ -6,3 +6,5 @@ ExecStart=/usr/bin/git clone git@github.ibm.com:ztoolchain/dotnet-s390x.git /tmp
 ExecStart=-/tmp/dotnet-s390x/dotnet-daily --platform 7.0.1xx
 ExecStart=/usr/bin/git -C /tmp/dotnet-s390x checkout origin/master
 ExecStart=-/tmp/dotnet-s390x/dotnet-daily --platform 8.0.1xx
+ExecStart=/usr/bin/git -C /tmp/dotnet-s390x checkout origin/master
+ExecStart=-/tmp/dotnet-s390x/dotnet-daily --platform 9.0.1xx
