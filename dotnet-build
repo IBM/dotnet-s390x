@@ -79,9 +79,12 @@ if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-symbols-linux-$ARCH-$runtime_version.tar.gz" "$OUTPUTDIR"
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
     cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
-    cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHost.$runtime_version.nupkg" "$OUTPUTDIR"
-    cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostPolicy.$runtime_version.nupkg" "$OUTPUTDIR"
-    cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostResolver.$runtime_version.nupkg" "$OUTPUTDIR"
+    if [ "$runtime_major_version" -lt 9 ]; then
+        # https://github.com/dotnet/runtime/pull/91655
+        cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHost.$runtime_version.nupkg" "$OUTPUTDIR"
+        cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostPolicy.$runtime_version.nupkg" "$OUTPUTDIR"
+        cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostResolver.$runtime_version.nupkg" "$OUTPUTDIR"
+    fi
     if [ "$runtime_version_label" = servicing ]; then
         cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
         cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILDAsm.$runtime_version_prefix-"@(dev|ci)**".nupkg" "$OUTPUTDIR"
