@@ -34,49 +34,49 @@ function install_host_sdk {
     tar -C "$root" -xf "$tgz"
 }
 
+function backport {
+    # Commit that introduced the bug, or an empty string.
+    fixes=$1
+    # Commit that fixed the bug, optionally followed by backported commits.
+    commitids=$2
+    if [ -n "$fixes" ] && git merge-base --is-ancestor "$fixes" HEAD; then
+        return
+    fi
+    for commitid in $commitids; do
+        if git merge-base --is-ancestor "$commitid" HEAD; then
+           return
+        fi
+    done
+    for commitid in $commitids; do
+        git cherry-pick "$commitid"
+        break
+    done
+}
+
 git submodule update --init --recursive
 
 pushd runtime
 git fetch
 # https://github.com/dotnet/runtime/pull/70346
-if ! git merge-base --is-ancestor 32670bdf9973 HEAD; then
-    git cherry-pick 32670bdf9973
-fi
+backport "" 32670bdf9973
 # https://github.com/dotnet/runtime/pull/70901
-if git merge-base --is-ancestor 7d562f9d2a42 HEAD && \
-        ! git merge-base --is-ancestor 2a38e2093ab2 HEAD; then
-    git cherry-pick 2a38e2093ab2
-fi
+backport 7d562f9d2a42 2a38e2093ab2
 # https://github.com/dotnet/runtime/pull/72049
-if git merge-base --is-ancestor 0e800a6139f1 HEAD && \
-        ! git merge-base --is-ancestor eaf0bb292dfa HEAD; then
-    git cherry-pick eaf0bb292dfa
-fi
+backport 0e800a6139f1 eaf0bb292dfa
 # https://github.com/dotnet/runtime/pull/82173
-if git merge-base --is-ancestor f478cfe83eb5 HEAD && \
-        ! git merge-base --is-ancestor 4e0ff826321d HEAD; then
-    git cherry-pick 4e0ff826321d
-fi
+backport f478cfe83eb5 4e0ff826321d
 # https://github.com/dotnet/runtime/pull/82678
-if ! git merge-base --is-ancestor 961418a93f7e HEAD; then
-    git cherry-pick 961418a93f7e
-fi
+backport "" 961418a93f7e
 # https://github.com/dotnet/runtime/pull/85307
-if git merge-base --is-ancestor 93b487ad8075 HEAD && \
-       ! git merge-base --is-ancestor 5cea3d67b9b1 HEAD; then
-    git cherry-pick 5cea3d67b9b1
-fi
+backport 93b487ad8075 5cea3d67b9b1
 # https://github.com/dotnet/runtime/pull/88145
-if git merge-base --is-ancestor 910362b50c34 HEAD && \
-	! git merge-base --is-ancestor 52bc96de5104 HEAD; then
-    git cherry-pick 52bc96de5104
-fi
+backport 910362b50c34 52bc96de5104
 # https://github.com/dotnet/runtime/pull/91008
-if git merge-base --is-ancestor cab57d89a5d7 HEAD && \
-	! git merge-base --is-ancestor f51b3979f5f4 HEAD && \
-	! git merge-base --is-ancestor fe64d25f43e9 HEAD; then
-    git cherry-pick f51b3979f5f4
-fi
+backport cab57d89a5d7 "f51b3979f5f4 fe64d25f43e9"
+# https://github.com/dotnet/runtime/pull/94602
+backport "" 0cfad5669224
+# https://github.com/dotnet/runtime/pull/94437
+backport "" 0fb7b7dd0813
 
 if [ -s ../runtime-patches/series ]; then
     rm -rf .pc
@@ -122,10 +122,7 @@ popd
 pushd sdk
 update_nuget_config
 # https://github.com/dotnet/sdk/pull/33682
-if git merge-base --is-ancestor b6ca751324b8 HEAD && \
-       ! git merge-base --is-ancestor ebc32022e152 HEAD; then
-    git cherry-pick ebc32022e152
-fi
+backport b6ca751324b8 ebc32022e152
 popd
 
 pushd aspnetcore
@@ -134,9 +131,8 @@ popd
 
 pushd installer
 update_nuget_config
-if ! git merge-base --is-ancestor 5501c7f23811 HEAD; then
-    git cherry-pick 5501c7f23811
-fi
+# https://github.com/dotnet/installer/pull/14173
+backport "" 5501c7f23811
 popd
 
 install_host_sdk runtime
