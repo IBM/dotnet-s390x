@@ -56,8 +56,7 @@ RUN cd binutils-gdb && make -j"$(nproc)" install DESTDIR=/gdb
 FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
-    apt-get install -y curl
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+    apt-get install -y ca-certificates curl
 COPY fs/ /
 ARG llvm_version=7
 RUN apt-get update && \

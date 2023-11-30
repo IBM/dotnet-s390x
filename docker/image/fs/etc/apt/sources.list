@@ -6,3 +6,4 @@ deb [arch=ppc64el,s390x] http://ports.ubuntu.com/ubuntu-ports/ bionic main unive
 deb [arch=ppc64el,s390x] http://ports.ubuntu.com/ubuntu-ports/ bionic-security main universe
 deb [arch=ppc64el,s390x] http://ports.ubuntu.com/ubuntu-ports/ bionic-updates main universe
 deb [arch=ppc64el,s390x] http://ports.ubuntu.com/ubuntu-ports/ bionic-backports main universe
+deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main
