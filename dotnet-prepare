@@ -39,7 +39,7 @@ function backport {
     fixes=$1
     # Commit that fixed the bug, optionally followed by backported commits.
     commitids=$2
-    if [ -n "$fixes" ] && git merge-base --is-ancestor "$fixes" HEAD; then
+    if [ -n "$fixes" ] && ! git merge-base --is-ancestor "$fixes" HEAD; then
         return
     fi
     for commitid in $commitids; do
