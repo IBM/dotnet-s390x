@@ -1,0 +1,41 @@
+From 619d5120db0b41d4759a551a1bcb2b9768a87b64 Mon Sep 17 00:00:00 2001
+From: Adeel Mujahid <3840695+am11@users.noreply.github.com>
+Date: Sat, 25 Mar 2023 16:21:39 +0200
+Subject: [PATCH] Fix cmakeargs in corehost and build-native projs
+
+This is a part of commit c22b79ae2d1b ("Persist FPU variables across
+try_compile passes (#83206)").
+---
+ src/libraries/Native/build-native.proj | 2 +-
+ src/native/corehost/corehost.proj      | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/libraries/Native/build-native.proj b/src/libraries/Native/build-native.proj
+index 6fb1d6e5dfc..734494484c9 100644
+--- a/src/libraries/Native/build-native.proj
++++ b/src/libraries/Native/build-native.proj
+@@ -24,7 +24,7 @@
+       <_PortableBuildArg Condition="'$(PortableBuild)' != 'true'"> -portablebuild=false</_PortableBuildArg>
+       <_CrossBuildArg Condition="'$(CrossBuild)' == 'true'"> -cross</_CrossBuildArg>
+       <_KeepNativeSymbolsBuildArg Condition="'$(KeepNativeSymbols)' != 'false'"> -keepnativesymbols</_KeepNativeSymbolsBuildArg>
+-      <_CMakeArgs Condition="'$(CMakeArgs)' != ''"> $(CMakeArgs)</_CMakeArgs>
++      <_CMakeArgs Condition="'$(CMakeArgs)' != ''"> -cmakeargs "$(CMakeArgs)"</_CMakeArgs>
+ 
+       <!--
+         BuildNativeCompiler is a pass-through argument, to pass an argument to build-native.sh. It is intended to be
+diff --git a/src/native/corehost/corehost.proj b/src/native/corehost/corehost.proj
+index ba630e8d2f8..cfbe7a28f69 100644
+--- a/src/native/corehost/corehost.proj
++++ b/src/native/corehost/corehost.proj
+@@ -28,7 +28,7 @@
+       <BuildArgs Condition="'$(KeepNativeSymbols)' != 'false'">$(BuildArgs) -keepnativesymbols</BuildArgs>
+       <BuildArgs Condition="'$(CrossBuild)' == 'true'">$(BuildArgs) -cross</BuildArgs>
+       <BuildArgs Condition="'$(Compiler)' != ''">$(BuildArgs) $(Compiler)</BuildArgs>
+-      <BuildArgs Condition="'$(CMakeArgs)' != ''">$(BuildArgs) $(CMakeArgs)</BuildArgs>
++      <BuildArgs Condition="'$(CMakeArgs)' != ''">$(BuildArgs) -cmakeargs "$(CMakeArgs)"</BuildArgs>
+       <BuildArgs>$(BuildArgs) -coreclrartifacts $(CoreCLRArtifactsPath)</BuildArgs>
+       <BuildArgs Condition="'$(Ninja)' == 'true'">$(BuildArgs) -ninja</BuildArgs>
+       <BuildArgs>$(BuildArgs) -runtimeflavor $(RuntimeFlavor)</BuildArgs>
+-- 
+2.43.0
+

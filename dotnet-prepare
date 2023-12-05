@@ -37,18 +37,26 @@ function install_host_sdk {
 function backport {
     # Commit that introduced the bug, or an empty string.
     fixes=$1
-    # Commit that fixed the bug, optionally followed by backported commits.
+    # Commit or patch that fixes the bug, optionally followed by backported or
+    # conflicting commits.
     commitids=$2
     if [ -n "$fixes" ] && ! git merge-base --is-ancestor "$fixes" HEAD; then
         return
     fi
     for commitid in $commitids; do
+        if [ -e "$commitid" ]; then
+           continue
+        fi
         if git merge-base --is-ancestor "$commitid" HEAD; then
            return
         fi
     done
     for commitid in $commitids; do
-        git cherry-pick "$commitid"
+        if [ -e "$commitid" ]; then
+            git am "$commitid"
+        else
+            git cherry-pick "$commitid"
+        fi
         break
     done
 }
@@ -77,6 +85,10 @@ backport cab57d89a5d7 "f51b3979f5f4 fe64d25f43e9"
 backport "" 0cfad5669224
 # https://github.com/dotnet/runtime/pull/94437
 backport "" 0fb7b7dd0813
+# https://github.com/dotnet/runtime/pull/83206
+backport 2f1694ea116c "../runtime-patches/Fix-cmakeargs-in-corehost-and-build-native-projs.patch c22b79ae2d1b 3c126e6e42b0"
+# https://github.com/dotnet/runtime/pull/67108
+backport 51bf70e94b0c "../runtime-patches/Fix-cmakeargs-in-coreclr-proj.patch 7d562f9d2a42 2811e7c7551c"
 
 if [ -s ../runtime-patches/series ]; then
     rm -rf .pc

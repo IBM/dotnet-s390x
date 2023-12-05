@@ -1,0 +1,28 @@
+From ec83a00849011ef57ca7d4cdc1f1b84bf56da060 Mon Sep 17 00:00:00 2001
+From: Jeremy Koritzinsky <jekoritz@microsoft.com>
+Date: Tue, 5 Dec 2023 16:54:04 +0100
+Subject: [PATCH] Fix cmakeargs in coreclr proj
+
+This is a part of commit 7d562f9d2a42 ("Make the cross-component build
+just another invocation of the build-runtime script (#67108)")
+---
+ src/coreclr/runtime.proj | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/coreclr/runtime.proj b/src/coreclr/runtime.proj
+index 3d4705a92f6..d3e26db300a 100644
+--- a/src/coreclr/runtime.proj
++++ b/src/coreclr/runtime.proj
+@@ -4,8 +4,7 @@
+           AfterTargets="Build">
+     <ItemGroup>
+       <_CoreClrBuildArg Condition="'$(TargetArchitecture)' != ''" Include="-$(TargetArchitecture)" />
+-      <_CoreClrBuildArg Condition="!$([MSBuild]::IsOsPlatform(Windows)) and '$(CMakeArgs)' != ''" Include="$(CMakeArgs)" />
+-      <_CoreClrBuildArg Condition="$([MSBuild]::IsOsPlatform(Windows)) and '$(CMakeArgs)' != ''" Include="-cmakeargs &quot;$(CMakeArgs)&quot;" />
++      <_CoreClrBuildArg Condition="'$(CMakeArgs)' != ''" Include="-cmakeargs &quot;$(CMakeArgs)&quot;" />
+       <_CoreClrBuildArg Include="-$(Configuration.ToLower())" />
+       <_CoreClrBuildArg Include="$(Compiler)" />
+       <_CoreClrBuildArg Condition="'$(ContinuousIntegrationBuild)' == 'true'" Include="-ci" />
+-- 
+2.43.0
+
