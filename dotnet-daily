@@ -6,7 +6,13 @@ docker run --rm --privileged multiarch/qemu-user-static:7.2.0-1 --reset --persis
 docker/run ./dotnet-cleanup
 docker/run ./dotnet-bump "$@"
 docker/run ./dotnet-prepare
-for arch in ppc64le s390x x64; do
+arches=(s390x x64)
+# Upstream coreclr and pal changes to support powerpc (ppc64le) architecture
+# https://github.com/dotnet/runtime/pull/69105
+if git -C runtime merge-base --is-ancestor edd359716c20 HEAD; then
+    arches+=(ppc64le)
+fi
+for arch in "${arches[@]}"; do
     ARCH="$arch" docker/run ./dotnet-build
     ARCH="$arch" docker/run ./dotnet-test-sdk ./output/dotnet-sdk-*-linux-"$arch".tar.gz
 done
