@@ -25,12 +25,13 @@ case "$ARCH on $(uname -m)" in
     ;;
 esac
 RUNTIME_CONF=Release
+runtime_flavor=Mono
 runtime_build_flags=(
     --ci
     -c "$RUNTIME_CONF"
     -clang
     -keepnativesymbols true
-    "/p:PrimaryRuntimeFlavor=Mono"
+    "/p:PrimaryRuntimeFlavor=$runtime_flavor"
     "/p:DotNetUseShippingVersions=true"
     "/p:DeterministicSourcePaths=false"
     "/p:SkipArchivesBuild=false"
@@ -254,6 +255,9 @@ if [ "$installer_build_id" != "" ]; then
         "/p:ContinuousIntegrationBuild=true"
         "/p:OfficialBuildId=$installer_build_id"
     )
+fi
+if [ "$runtime_flavor" = Mono ]; then
+    installer_build_flags+=("/p:DISABLE_CROSSGEN=true")
 fi
 if [ "$installer_version_suffix" != "" ]; then
     INSTALLER_VERSION=$INSTALLER_VERSION-$installer_version_suffix
