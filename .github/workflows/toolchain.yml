@@ -1,0 +1,21 @@
+name: Build and push a toolchain image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  toolchain:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [ppc64le, s390x, x64]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: docker/build -t ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
+    - name: Login
+      run: echo ${{ secrets.GHCR_PASSWORD }} | docker login ghcr.io --username=${{ secrets.GHCR_USERNAME }} --password-stdin
+    - name: Push
+      run: docker push ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
