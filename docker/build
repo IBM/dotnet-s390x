@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e -u -x -o pipefail
+basedir=$(cd "$(dirname "$0")"/.. && pwd)
+ARCH=${ARCH-s390x}
+deb_arch=$ARCH
+gnu_arch=$ARCH
+case "$deb_arch on $(uname -m)" in
+"ppc64le on ppc64le" | "s390x on s390x" | "x64 on x86_64")
+    deb_arch=
+    ;;
+"ppc64le on "*)
+    deb_arch=ppc64el
+    gnu_arch=powerpc64le
+    ;;
+esac
+docker build --build-arg=deb_arch="$deb_arch" --build-arg=gnu_arch="$gnu_arch" "$@" "$basedir"/docker/image
