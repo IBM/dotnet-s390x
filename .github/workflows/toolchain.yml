@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'docker/**'
+      - '.github/workflows/toolchain.yml'
 
 jobs:
   toolchain:
