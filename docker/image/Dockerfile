@@ -28,31 +28,6 @@ RUN curl -L https://go.dev/dl/go1.18.3.linux-$(dpkg --print-architecture).tar.gz
 RUN git clone --branch=v2.13.0 --depth=1 https://github.com/cli/cli.git
 RUN cd cli && PATH=/go/bin:$PATH make
 
-FROM ubuntu:18.04 as gdb
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && \
-    apt-get install -y \
-        bison \
-        flex \
-        g++ \
-        gcc \
-        git \
-        libexpat1-dev \
-        libgmp-dev \
-        libncurses5-dev \
-        libpython3-dev \
-        make \
-        python3 \
-        python3-distutils \
-        texinfo
-RUN git clone \
-        --branch=section-map-20220801 \
-        --depth=1 \
-        https://github.com/iii-i/binutils-gdb.git
-RUN cd binutils-gdb && ./configure --with-python=python3
-RUN cd binutils-gdb && make -j"$(nproc)"
-RUN cd binutils-gdb && make -j"$(nproc)" install DESTDIR=/gdb
-
 FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
@@ -116,7 +91,6 @@ ENV PATH=/usr/lib/llvm-$llvm_version/bin:$PATH
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen
 COPY --from=cmake /cmake/ /
 COPY --from=gh /cli/bin/gh /usr/bin/
-COPY --from=gdb /gdb/ /
 # Prevent qemu-user guests from reading the host ld.so.cache and crashing.
 ENV QEMU_LD_PREFIX=/usr/"$deb_arch"-linux-gnu
 RUN mkdir -p "$QEMU_LD_PREFIX"/etc
