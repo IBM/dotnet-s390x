@@ -1,0 +1,33 @@
+name: Build dotnet
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:  # XXX
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [ppc64le, s390x, x64]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Configure git
+      run: git config --global user.email iii@linux.ibm.com &&
+           git config --global user.name "dotnet-s390x bot"
+    - name: Prepare
+      container:
+        image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
+        credentials:
+           username: ${{ secrets.GHCR_USERNAME }}
+           password: ${{ secrets.GHCR_PASSWORD }}
+      run: cd dotnet-s390x && ./dotnet-prepare runtime
+    - name: Build
+      container:
+        image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
+        credentials:
+           username: ${{ secrets.GHCR_USERNAME }}
+           password: ${{ secrets.GHCR_PASSWORD }}
+      run: cd dotnet-s390x && ARCH=${{ matrix.arch }} ./dotnet-build runtime
