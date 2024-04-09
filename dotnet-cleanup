@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -u x
+set -e -u -x
 cd "$(dirname "$0")"
 git clean -dfx
 git submodule foreach --recursive 'git clean -dfx && git reset --hard'
