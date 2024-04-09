@@ -25,12 +25,17 @@ case "$ARCH on $(uname -m)" in
     ;;
 esac
 
+runtime_conf=Release
+runtime_flavor=Mono
+msbuild_conf=Release
+roslyn_conf=Release
+aspnetcore_conf=Release
+installer_conf=Release
+
 function build_runtime {
-    RUNTIME_CONF=Release
-    runtime_flavor=Mono
     runtime_build_flags=(
         --ci
-        -c "$RUNTIME_CONF"
+        -c "$runtime_conf"
         -clang
         -keepnativesymbols true
         "/p:PrimaryRuntimeFlavor=$runtime_flavor"
@@ -66,49 +71,48 @@ function build_runtime {
         ROOTFS_DIR=/ ./build.sh "${runtime_build_flags[@]}"
     fi
     if [ -z ${SKIP_PACKAGE_RUNTIME+x} ] && [ ! -e .skip-package ]; then
-        cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" "$PACKAGESDIR"
-        cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" "$PACKAGESDIR"
-        cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Ref.$runtime_version.nupkg" "$PACKAGESDIR"
+        cp "artifacts/packages/$runtime_conf/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" "$PACKAGESDIR"
+        cp "artifacts/packages/$runtime_conf/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" "$PACKAGESDIR"
+        cp "artifacts/packages/$runtime_conf/Shipping/Microsoft.NETCore.App.Ref.$runtime_version.nupkg" "$PACKAGESDIR"
         mkdir -p "$DOWNLOADDIR/Runtime/$runtime_version"
-        cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$DOWNLOADDIR/Runtime/$runtime_version"
+        cp "artifacts/packages/$runtime_conf/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$DOWNLOADDIR/Runtime/$runtime_version"
         # Necessary for incoherent packages: pretend that the runtime that we built
         # has the version that ASP.NET requires.
         # https://devblogs.microsoft.com/dotnet/a-deep-dive-into-how-net-builds-and-ships/
         mkdir -p "$DOWNLOADDIR/Runtime/$aspnetcore_transport_version"
         cp \
-            "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" \
+            "artifacts/packages/$runtime_conf/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" \
             "$DOWNLOADDIR/Runtime/$aspnetcore_transport_version/dotnet-runtime-$aspnetcore_runtime_version-linux-$ARCH.tar.gz"
-        cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$OUTPUTDIR"
-        cp "artifacts/packages/$RUNTIME_CONF/Shipping/dotnet-runtime-symbols-linux-$ARCH-$runtime_version.tar.gz" "$OUTPUTDIR"
-        cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
-        cp "artifacts/packages/$RUNTIME_CONF/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
+        cp "artifacts/packages/$runtime_conf/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$OUTPUTDIR"
+        cp "artifacts/packages/$runtime_conf/Shipping/dotnet-runtime-symbols-linux-$ARCH-$runtime_version.tar.gz" "$OUTPUTDIR"
+        cp "artifacts/packages/$runtime_conf/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
+        cp "artifacts/packages/$runtime_conf/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
         if [ "$runtime_major_version" -lt 9 ]; then
             # https://github.com/dotnet/runtime/pull/91655
-            cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHost.$runtime_version.nupkg" "$OUTPUTDIR"
-            cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostPolicy.$runtime_version.nupkg" "$OUTPUTDIR"
-            cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostResolver.$runtime_version.nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHost.$runtime_version.nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostPolicy.$runtime_version.nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostResolver.$runtime_version.nupkg" "$OUTPUTDIR"
         fi
         if [ "$runtime_version_label" = servicing ]; then
-            cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
-            cp "artifacts/packages/$RUNTIME_CONF/NonShipping/Microsoft.NETCore.ILDAsm.$runtime_version_prefix-"@(dev|ci)**".nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/NonShipping/Microsoft.NETCore.ILAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/NonShipping/Microsoft.NETCore.ILDAsm.$runtime_version_prefix-"@(dev|ci)**".nupkg" "$OUTPUTDIR"
         else
-            cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version.nupkg" "$OUTPUTDIR"
-            cp "artifacts/packages/$RUNTIME_CONF/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version.nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version.nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version.nupkg" "$OUTPUTDIR"
         fi
         if [ "$ARCH" = s390x ]; then
-            tar -C artifacts/obj/mono/[Ll]inux."$ARCH"."$RUNTIME_CONF"/out/lib -czf "$OUTPUTDIR"/libmono-profiler-log-"$ARCH".tar.gz libmono-profiler-log.so
+            tar -C artifacts/obj/mono/[Ll]inux."$ARCH"."$runtime_conf"/out/lib -czf "$OUTPUTDIR"/libmono-profiler-log-"$ARCH".tar.gz libmono-profiler-log.so
         fi
     fi
     popd
 }
 
 function build_msbuild {
-    MSBUILD_CONF=Release
     msbuild_build_flags=(
         --ci
         --restore
         --pack
-        --configuration "$MSBUILD_CONF"
+        --configuration "$msbuild_conf"
         "/p:EnableNgenOptimization=false"
     )
     if [ "$msbuild_build_id" != "" ]; then
@@ -128,7 +132,6 @@ function build_msbuild {
 }
 
 function build_roslyn {
-    ROSLYN_CONF=Release
     pushd roslyn
     roslyn_build_flags=(
         --ci
@@ -136,7 +139,7 @@ function build_roslyn {
         --build
         --pack
         --binaryLog
-        --configuration "$ROSLYN_CONF"
+        --configuration "$roslyn_conf"
         "/p:EnableNgenOptimization=false"
     )
     if [ "$roslyn_build_id" != "" ]; then
@@ -184,12 +187,11 @@ function build_sdk {
 }
 
 function build_aspnetcore {
-    ASPNETCORE_CONF=Release
     ASPNETCORE_VERSION=$aspnetcore_version_prefix
     aspnetcore_major_minor_version=$aspnetcore_major_version.$aspnetcore_minor_version
     aspnetcore_build_flags=(
         --ci
-        --configuration "$ASPNETCORE_CONF"
+        --configuration "$aspnetcore_conf"
         --pack
         "/p:DotNetAssetRootUrl=file://$DOWNLOADDIR/"
         "/p:NuGetAudit=false"
@@ -228,33 +230,32 @@ function build_aspnetcore {
         done
     fi
     if [ -z ${SKIP_PACKAGE_ASPNETCORE+x} ] && [ ! -e .skip-package ]; then
-        cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
-        cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Ref.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
-        cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ItemTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
-        cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
-        spa_templates=artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg
+        cp "artifacts/packages/$aspnetcore_conf/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
+        cp "artifacts/packages/$aspnetcore_conf/Shipping/Microsoft.AspNetCore.App.Ref.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
+        cp "artifacts/packages/$aspnetcore_conf/Shipping/Microsoft.DotNet.Web.ItemTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
+        cp "artifacts/packages/$aspnetcore_conf/Shipping/Microsoft.DotNet.Web.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg" "$PACKAGESDIR"
+        spa_templates=artifacts/packages/$aspnetcore_conf/Shipping/Microsoft.DotNet.Web.Spa.ProjectTemplates.$aspnetcore_major_minor_version.$ASPNETCORE_VERSION.nupkg
         if [ -e "$spa_templates" ]; then
             cp "$spa_templates" "$PACKAGESDIR"
         fi
-        aspnetcore_tgz=artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+        aspnetcore_tgz=artifacts/installers/$aspnetcore_conf/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
         if [ ! -e "$aspnetcore_tgz" ]; then
-            aspnetcore_tgz=artifacts/installers/$ASPNETCORE_CONF/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+            aspnetcore_tgz=artifacts/installers/$aspnetcore_conf/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
         fi
         mkdir -p "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
         cp "$aspnetcore_tgz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
         cp "$aspnetcore_tgz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz"
-        cp "artifacts/installers/$ASPNETCORE_CONF/aspnetcore_base_runtime.version" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
-        cp "artifacts/packages/$ASPNETCORE_CONF/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" "$OUTPUTDIR"
+        cp "artifacts/installers/$aspnetcore_conf/aspnetcore_base_runtime.version" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
+        cp "artifacts/packages/$aspnetcore_conf/Shipping/Microsoft.AspNetCore.App.Runtime.linux-$ARCH.$ASPNETCORE_VERSION.nupkg" "$OUTPUTDIR"
     fi
     popd
 }
 
 function build_installer {
-    INSTALLER_CONF=Release
     INSTALLER_VERSION=$installer_version_prefix
     installer_build_flags=(
         --ci
-        --configuration "$INSTALLER_CONF"
+        --configuration "$installer_conf"
         "/p:HostRid=linux-x64"
         "/p:Architecture=$ARCH"
         "/p:BundleRuntimePacks=true"
@@ -281,7 +282,7 @@ function build_installer {
         ./build.sh "${installer_build_flags[@]}"
     fi
     if [ -z ${SKIP_PACKAGE_INSTALLER+x} ] && [ ! -e .skip-package ]; then
-        cp "artifacts/packages/$INSTALLER_CONF/Shipping/dotnet-sdk-$INSTALLER_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
+        cp "artifacts/packages/$installer_conf/Shipping/dotnet-sdk-$INSTALLER_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
     fi
     popd
 }
