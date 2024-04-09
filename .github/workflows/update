@@ -1,0 +1,6 @@
+#!/bin/bash
+# A script for generating workflow files from templates.
+set -e -u -x
+cd "$(dirname "$0")"
+jinja2 -o dotnet.yml dotnet.yml.j2
+jinja2 -o toolchain.yml toolchain.yml.j2
