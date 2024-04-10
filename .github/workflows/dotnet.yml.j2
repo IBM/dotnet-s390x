@@ -7,23 +7,22 @@ Workflow template. Regenerate the workflow using the ./update script.
 on:
   push:
     branches:
-      - main
+    - main
+    tags:
+    - 'v.*'
   pull_request:
 
 {%- set projects = ['runtime', 'msbuild', 'roslyn', 'sdk', 'aspnetcore', 'installer'] %}
 
-jobs:
-{%- for i in range(projects | length) %}
-  {{ projects[i] }}:
-    {%- if i != 0 %}
-    needs: {{ projects[i - 1] }}
-    {%- endif %}
-    runs-on: ubuntu-latest
+{%- set matrix -%}
     strategy:
       matrix:
         # TODO: aspnetcore build fails on x64 with:
         # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
         arch: [ppc64le, s390x]
+{%- endset %}
+
+{%- set container -%}
     container:
       image: ghcr.io/ibm/dotnet-{% raw %}${{ matrix.arch }}{% endraw %}-toolchain:latest
       credentials:
@@ -32,7 +31,9 @@ jobs:
       # Workaround for the following:
       # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
       options: --user root
-    steps:
+{%- endset %}
+
+{%- set checkout_steps -%}
     - name: Configure git
       run: git config --global user.email iii@linux.ibm.com &&
            git config --global user.name "dotnet-s390x bot"
@@ -40,6 +41,19 @@ jobs:
       uses: actions/checkout@v1  # Newer versions are not compatible with Ubuntu 18.04
     - name: Fix the repository ownership
       run: chown -R "$(id -u):$(id -g)" .
+{%- endset %}
+
+jobs:
+{%- for i in range(projects | length) %}
+  {{ projects[i] }}:
+    {%- if i != 0 %}
+    needs: {{ projects[i - 1] }}
+    {%- endif %}
+    runs-on: ubuntu-latest
+    {{ matrix }}
+    {{ container }}
+    steps:
+    {{ checkout_steps }}
     {%- if i != 0 %}
     - name: Download the previous stage's artifacts
       uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
@@ -55,7 +69,25 @@ jobs:
       with:
         name: {{ projects[i] }}-{% raw %}${{ matrix.arch }}{% endraw %}
         path: |
+          {%- if projects[i] != 'installer' %}
           local-downloads/
           local-packages/
+          {%- endif %}
           output/
 {%- endfor %}
+  release:
+    needs: installer
+    runs-on: ubuntu-latest
+    if: {% raw %}${{ github.event_name == 'push' && github.ref_type == 'tag' }}{% endraw %}
+    {{ matrix }}
+    {{ container }}
+    steps:
+    {{ checkout_steps }}
+    - name: Download the installer artifacts
+      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      with:
+        name: installer-{% raw %}${{ matrix.arch }}{% endraw %}
+    - name: Create a release
+      run: gh release create --notes "" "{% raw %}${{ github.ref_name }}{% endraw %}" output/*
+      env:
+        GH_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
