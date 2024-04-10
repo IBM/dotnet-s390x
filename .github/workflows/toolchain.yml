@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'docker/**'
-      - '.github/workflows/toolchain.yml'
+    - 'docker/**'
+    - '.github/workflows/toolchain.yml'
   pull_request:
     paths:
-      - 'docker/**'
-      - '.github/workflows/toolchain.yml'
+    - 'docker/**'
+    - '.github/workflows/toolchain.yml'
 
 jobs:
   toolchain:

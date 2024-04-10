@@ -3,7 +3,9 @@
 on:
   push:
     branches:
-      - main
+    - main
+    tags:
+    - 'v.*'
   pull_request:
 
 jobs:
@@ -239,6 +241,37 @@ jobs:
       with:
         name: installer-${{ matrix.arch }}
         path: |
-          local-downloads/
-          local-packages/
           output/
+  release:
+    needs: installer
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+    strategy:
+      matrix:
+        # TODO: aspnetcore build fails on x64 with:
+        # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
+        arch: [ppc64le, s390x]
+    container:
+      image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
+      credentials:
+         username: ${{ secrets.GHCR_USERNAME }}
+         password: ${{ secrets.GHCR_PASSWORD }}
+      # Workaround for the following:
+      # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
+      options: --user root
+    steps:
+    - name: Configure git
+      run: git config --global user.email iii@linux.ibm.com &&
+           git config --global user.name "dotnet-s390x bot"
+    - name: Checkout
+      uses: actions/checkout@v1  # Newer versions are not compatible with Ubuntu 18.04
+    - name: Fix the repository ownership
+      run: chown -R "$(id -u):$(id -g)" .
+    - name: Download the installer artifacts
+      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      with:
+        name: installer-${{ matrix.arch }}
+    - name: Create a release
+      run: gh release create --notes "" "${{ github.ref_name }}" output/*
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
