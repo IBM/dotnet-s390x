@@ -1,0 +1,23 @@
+on:
+  schedule:
+  - cron: '0 0 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install packages
+      run: sudo apt-get update &&
+           sudo apt-get install -y libxml2-utils
+    - name: Configure git
+      run: git config --global user.email iii@linux.ibm.com &&
+           git config --global user.name "dotnet-s390x bot"
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Bump
+      run: ./dotnet-bump
+    - name: Push
+      run: git push origin $(git describe --exact-match --tags)
