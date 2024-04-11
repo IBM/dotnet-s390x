@@ -12,6 +12,8 @@ on:
     - 'v*'
   pull_request:
 
+{%- set arches = ['ppc64le', 's390x'] -%}
+
 {%- set projects = ['runtime', 'msbuild', 'roslyn', 'sdk', 'aspnetcore', 'installer'] %}
 
 {%- set matrix -%}
@@ -19,7 +21,7 @@ on:
       matrix:
         # TODO: aspnetcore build fails on x64 with:
         # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
-        arch: [ppc64le, s390x]
+        arch: [{{ ', '.join(arches) }}]
 {%- endset %}
 
 {%- set container -%}
@@ -83,14 +85,15 @@ jobs:
     needs: installer
     runs-on: ubuntu-latest
     if: {% raw %}${{ github.event_name == 'push' && github.ref_type == 'tag' }}{% endraw %}
-    {{ matrix }}
     {{ container }}
     steps:
     {{ checkout_steps }}
-    - name: Download the installer artifacts
+    {%- for arch in arches %}
+    - name: Download the {{ arch }} installer artifacts
       uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
       with:
-        name: installer-{% raw %}${{ matrix.arch }}{% endraw %}
+        name: installer-{{ arch }}
+    {%- endfor %}
     - name: Create a release
       run: gh release create --notes "" "{% raw %}${{ github.ref_name }}{% endraw %}" output/*
       env:

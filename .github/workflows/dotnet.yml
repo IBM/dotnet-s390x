@@ -249,11 +249,6 @@ jobs:
     needs: installer
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
-    strategy:
-      matrix:
-        # TODO: aspnetcore build fails on x64 with:
-        # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
-        arch: [ppc64le, s390x]
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
@@ -270,10 +265,14 @@ jobs:
       uses: actions/checkout@v1  # Newer versions are not compatible with Ubuntu 18.04
     - name: Fix the repository ownership
       run: chown -R "$(id -u):$(id -g)" .
-    - name: Download the installer artifacts
+    - name: Download the ppc64le installer artifacts
       uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
       with:
-        name: installer-${{ matrix.arch }}
+        name: installer-ppc64le
+    - name: Download the s390x installer artifacts
+      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      with:
+        name: installer-s390x
     - name: Create a release
       run: gh release create --notes "" "${{ github.ref_name }}" output/*
       env:
