@@ -72,6 +72,10 @@ jobs:
           {%- if projects[i] != 'installer' %}
           local-downloads/
           local-packages/
+          {%- else %}
+          # Use a dummy file to preserve the directory structure.
+          # See https://github.com/actions/upload-artifact/issues/174 for details.
+          dotnet-versions
           {%- endif %}
           output/
 {%- endfor %}
