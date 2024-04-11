@@ -84,6 +84,9 @@ jobs:
   release:
     needs: installer
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x64]
     if: {% raw %}${{ github.event_name == 'push' && github.ref_type == 'tag' }}{% endraw %}
     {{ container }}
     steps:
