@@ -248,6 +248,9 @@ jobs:
   release:
     needs: installer
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x64]
     if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
