@@ -16,6 +16,11 @@ jobs:
         # TODO: aspnetcore build fails on x64 with:
         # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
         arch: [ppc64le, s390x]
+        isV6:
+        - ${{ startsWith(github.ref, 'refs/tags/v6.') }}
+        exclude:
+        - arch: ppc64le
+          isV6: true
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
@@ -52,6 +57,11 @@ jobs:
         # TODO: aspnetcore build fails on x64 with:
         # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
         arch: [ppc64le, s390x]
+        isV6:
+        - ${{ startsWith(github.ref, 'refs/tags/v6.') }}
+        exclude:
+        - arch: ppc64le
+          isV6: true
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
@@ -92,6 +102,11 @@ jobs:
         # TODO: aspnetcore build fails on x64 with:
         # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
         arch: [ppc64le, s390x]
+        isV6:
+        - ${{ startsWith(github.ref, 'refs/tags/v6.') }}
+        exclude:
+        - arch: ppc64le
+          isV6: true
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
@@ -132,6 +147,11 @@ jobs:
         # TODO: aspnetcore build fails on x64 with:
         # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
         arch: [ppc64le, s390x]
+        isV6:
+        - ${{ startsWith(github.ref, 'refs/tags/v6.') }}
+        exclude:
+        - arch: ppc64le
+          isV6: true
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
@@ -172,6 +192,11 @@ jobs:
         # TODO: aspnetcore build fails on x64 with:
         # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
         arch: [ppc64le, s390x]
+        isV6:
+        - ${{ startsWith(github.ref, 'refs/tags/v6.') }}
+        exclude:
+        - arch: ppc64le
+          isV6: true
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
@@ -212,6 +237,11 @@ jobs:
         # TODO: aspnetcore build fails on x64 with:
         # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
         arch: [ppc64le, s390x]
+        isV6:
+        - ${{ startsWith(github.ref, 'refs/tags/v6.') }}
+        exclude:
+        - arch: ppc64le
+          isV6: true
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
@@ -272,6 +302,7 @@ jobs:
       uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
       with:
         name: installer-ppc64le
+      if: ${{ !startsWith(github.ref, 'refs/tags/v6.') }}
     - name: Download the s390x installer artifacts
       uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
       with:
