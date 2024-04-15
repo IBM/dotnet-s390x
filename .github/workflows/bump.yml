@@ -18,6 +18,8 @@ jobs:
            git config --global user.name "dotnet-s390x bot"
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.PAT }}
     - name: Bump
       run: ./dotnet-bump
     - name: Push
