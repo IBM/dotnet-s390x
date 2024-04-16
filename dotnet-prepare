@@ -94,7 +94,7 @@ function prepare_runtime {
     backport "" 0cfad5669224
     # [mono] [imt] Don't increment vt_slot for non-virtual generic methods
     # https://github.com/dotnet/runtime/pull/94437
-    backport "" "0fb7b7dd0813 141b386ee2a"
+    backport "" "0fb7b7dd0813 141b386ee2a 6f3f5dc97ad4"
     # Persist FPU variables across try_compile passes
     # https://github.com/dotnet/runtime/pull/83206
     backport 2f1694ea116c "../runtime-patches/Fix-cmakeargs-in-corehost-and-build-native-projs.patch c22b79ae2d1b 3c126e6e42b0"
