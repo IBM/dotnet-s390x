@@ -12,7 +12,16 @@ on:
     - 'v*'
   pull_request:
 
-{%- set arches = ['ppc64le', 's390x'] -%}
+{%- set arches = {
+      'ppc64le': {
+        'deb_arch': 'ppc64el',
+        'gnu_arch': 'powerpc64le',
+      },
+      's390x': {
+        'deb_arch': 's390x',
+        'gnu_arch': 's390x',
+      },
+} -%}
 
 {%- set projects = ['runtime', 'msbuild', 'roslyn', 'sdk', 'aspnetcore', 'installer'] %}
 
@@ -86,8 +95,42 @@ jobs:
           {%- endif %}
           output/
 {%- endfor %}
-  release:
+  test:
     needs: installer
+    runs-on: ubuntu-latest
+    {{ matrix }}
+    steps:
+    {%- for arch in arches %}
+    - name: Install cross-{{ arch }} packages
+      run: (echo "deb [arch={{ arches[arch]['deb_arch'] }}] http://ports.ubuntu.com/ubuntu-ports/ $(lsb_release -cs) main universe" &&
+            echo "deb [arch={{ arches[arch]['deb_arch'] }}] http://ports.ubuntu.com/ubuntu-ports/ $(lsb_release -cs)-security main universe" &&
+            echo "deb [arch={{ arches[arch]['deb_arch'] }}] http://ports.ubuntu.com/ubuntu-ports/ $(lsb_release -cs)-updates main universe" &&
+            echo "deb [arch={{ arches[arch]['deb_arch'] }}] http://ports.ubuntu.com/ubuntu-ports/ $(lsb_release -cs)-backports main universe") |
+             sudo tee /etc/apt/sources.list.d/ports.list >/dev/null &&
+           sudo apt-get update &&
+           sudo apt-get install -y
+             libc6:{{ arches[arch]['deb_arch'] }}
+             libgcc-s1:{{ arches[arch]['deb_arch'] }}
+             libstdc++6:{{ arches[arch]['deb_arch'] }}
+             zlib1g:{{ arches[arch]['deb_arch'] }}
+      if: {% raw %}${{{% endraw %} matrix.arch == '{{ arch }}' }}
+    {%- endfor %}
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Download the {% raw %}${{ matrix.arch }}{% endraw %} installer artifacts
+      uses: actions/download-artifact@v3  # Has to match upload-artifact
+      with:
+        name: installer-{% raw %}${{ matrix.arch }}{% endraw %}
+    - name: Configure emulation
+      run: docker run --rm --privileged multiarch/qemu-user-static:7.2.0-1 --reset --persistent=yes
+    {%- for arch in arches %}
+    - name: Run a {{ arch }} smoke test
+      run: QEMU_LD_PREFIX=/usr/{{ arches[arch]['gnu_arch'] }}-linux-gnu
+           ./dotnet-test-sdk output/dotnet-sdk-*-linux-{{ arch }}.tar.gz
+      if: {% raw %}${{{% endraw %} matrix.arch == '{{ arch }}' }}
+    {%- endfor %}
+  release:
+    needs: test
     runs-on: ubuntu-latest
     strategy:
       matrix:
