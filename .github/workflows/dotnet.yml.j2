@@ -12,6 +12,9 @@ on:
     - 'v*'
   pull_request:
 
+permissions:
+  packages: read
+
 {%- set arches = ['ppc64le', 's390x'] -%}
 
 {%- set projects = ['runtime', 'msbuild', 'roslyn', 'sdk', 'aspnetcore', 'installer'] %}
@@ -33,8 +36,8 @@ on:
     container:
       image: ghcr.io/ibm/dotnet-{% raw %}${{ matrix.arch }}{% endraw %}-toolchain:latest
       credentials:
-         username: {% raw %}${{ secrets.GHCR_USERNAME }}{% endraw %}
-         password: {% raw %}${{ secrets.GHCR_PASSWORD }}{% endraw %}
+        username: {% raw %}${{ github.actor }}{% endraw %}
+        password: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
       # Workaround for the following:
       # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
       options: --user root

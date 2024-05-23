@@ -18,6 +18,9 @@ on:
   pull_request:
     {{- paths }}
 
+permissions:
+  packages: write
+
 jobs:
   toolchain:
     runs-on: ubuntu-latest
@@ -30,8 +33,8 @@ jobs:
     - name: Build
       run: ARCH={% raw %}${{ matrix.arch }}{% endraw %} docker/build -t {{ image }}
     - name: Login
-      run: echo {% raw %}${{ secrets.GHCR_PASSWORD }}{% endraw %} |
-           docker login ghcr.io --username={% raw %}${{ secrets.GHCR_USERNAME }}{% endraw %} --password-stdin
+      run: echo {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %} |
+           docker login ghcr.io --username={% raw %}${{ github.actor }}{% endraw %} --password-stdin
       if: {% raw %}${{ github.event_name == 'push' }}{% endraw %}
     - name: Push
       run: docker push {{ image }}

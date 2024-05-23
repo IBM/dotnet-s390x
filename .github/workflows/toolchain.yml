@@ -12,6 +12,9 @@ on:
     - 'docker/**'
     - '.github/workflows/toolchain.yml'
 
+permissions:
+  packages: write
+
 jobs:
   toolchain:
     runs-on: ubuntu-latest
@@ -23,8 +26,8 @@ jobs:
     - name: Build
       run: ARCH=${{ matrix.arch }} docker/build -t ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
     - name: Login
-      run: echo ${{ secrets.GHCR_PASSWORD }} |
-           docker login ghcr.io --username=${{ secrets.GHCR_USERNAME }} --password-stdin
+      run: echo ${{ secrets.GITHUB_TOKEN }} |
+           docker login ghcr.io --username=${{ github.actor }} --password-stdin
       if: ${{ github.event_name == 'push' }}
     - name: Push
       run: docker push ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
