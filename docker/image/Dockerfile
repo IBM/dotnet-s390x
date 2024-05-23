@@ -29,6 +29,7 @@ RUN git clone --branch=v2.13.0 --depth=1 https://github.com/cli/cli.git
 RUN cd cli && PATH=/go/bin:$PATH make
 
 FROM ubuntu:18.04
+LABEL org.opencontainers.image.source https://github.com/ibm/dotnet-s390x
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y ca-certificates curl
