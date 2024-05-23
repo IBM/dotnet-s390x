@@ -8,6 +8,9 @@ on:
     - 'v*'
   pull_request:
 
+permissions:
+  packages: read
+
 jobs:
   runtime:
     runs-on: ubuntu-latest
@@ -24,8 +27,8 @@ jobs:
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
-         username: ${{ secrets.GHCR_USERNAME }}
-         password: ${{ secrets.GHCR_PASSWORD }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       # Workaround for the following:
       # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
       options: --user root
@@ -65,8 +68,8 @@ jobs:
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
-         username: ${{ secrets.GHCR_USERNAME }}
-         password: ${{ secrets.GHCR_PASSWORD }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       # Workaround for the following:
       # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
       options: --user root
@@ -110,8 +113,8 @@ jobs:
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
-         username: ${{ secrets.GHCR_USERNAME }}
-         password: ${{ secrets.GHCR_PASSWORD }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       # Workaround for the following:
       # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
       options: --user root
@@ -155,8 +158,8 @@ jobs:
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
-         username: ${{ secrets.GHCR_USERNAME }}
-         password: ${{ secrets.GHCR_PASSWORD }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       # Workaround for the following:
       # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
       options: --user root
@@ -200,8 +203,8 @@ jobs:
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
-         username: ${{ secrets.GHCR_USERNAME }}
-         password: ${{ secrets.GHCR_PASSWORD }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       # Workaround for the following:
       # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
       options: --user root
@@ -245,8 +248,8 @@ jobs:
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
-         username: ${{ secrets.GHCR_USERNAME }}
-         password: ${{ secrets.GHCR_PASSWORD }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       # Workaround for the following:
       # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
       options: --user root
@@ -285,8 +288,8 @@ jobs:
     container:
       image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
       credentials:
-         username: ${{ secrets.GHCR_USERNAME }}
-         password: ${{ secrets.GHCR_PASSWORD }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       # Workaround for the following:
       # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
       options: --user root
