@@ -96,6 +96,8 @@ function build_runtime {
         if [ "$runtime_version_label" = servicing ]; then
             cp "artifacts/packages/$runtime_conf/NonShipping/Microsoft.NETCore.ILAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
             cp "artifacts/packages/$runtime_conf/NonShipping/Microsoft.NETCore.ILDAsm.$runtime_version_prefix-"@(dev|ci)**".nupkg" "$OUTPUTDIR"
+	    cp "artifacts/packages/$runtime_conf/NonShipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/NonShipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
         else
             cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version.nupkg" "$OUTPUTDIR"
             cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version.nupkg" "$OUTPUTDIR"
