@@ -96,7 +96,7 @@ function build_runtime {
         if [ "$runtime_version_label" = servicing ]; then
             cp "artifacts/packages/$runtime_conf/NonShipping/Microsoft.NETCore.ILAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
             cp "artifacts/packages/$runtime_conf/NonShipping/Microsoft.NETCore.ILDAsm.$runtime_version_prefix-"@(dev|ci)**".nupkg" "$OUTPUTDIR"
-	    cp "artifacts/packages/$runtime_conf/NonShipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/NonShipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
             cp "artifacts/packages/$runtime_conf/NonShipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version_prefix-"@(dev|ci)*".nupkg" "$OUTPUTDIR"
         else
             cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version.nupkg" "$OUTPUTDIR"
@@ -216,10 +216,10 @@ function build_aspnetcore {
         # aspnetcore no longer supports downloading runtime from custom URLs.
         mkdir -p artifacts/obj/Microsoft.AspNetCore.App.Runtime
         cp "$DOWNLOADDIR/Runtime/$runtime_version/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" \
-           artifacts/obj/Microsoft.AspNetCore.App.Runtime/
+            artifacts/obj/Microsoft.AspNetCore.App.Runtime/
         if [ "$runtime_version" != "$aspnetcore_runtime_version" ]; then
-             cp "$DOWNLOADDIR/Runtime/$aspnetcore_transport_version/dotnet-runtime-$aspnetcore_runtime_version-linux-$ARCH.tar.gz" \
-             artifacts/obj/Microsoft.AspNetCore.App.Runtime/
+            cp "$DOWNLOADDIR/Runtime/$aspnetcore_transport_version/dotnet-runtime-$aspnetcore_runtime_version-linux-$ARCH.tar.gz" \
+                artifacts/obj/Microsoft.AspNetCore.App.Runtime/
         fi
         # Run build script multiple times to work around yarn race condition
         for i in $(seq 1 3); do

@@ -45,10 +45,10 @@ function backport {
     fi
     for commitid in $commitids; do
         if [ -e "$commitid" ]; then
-           continue
+            continue
         fi
         if git merge-base --is-ancestor "$commitid" HEAD; then
-           return
+            return
         fi
     done
     for commitid in $commitids; do
@@ -123,8 +123,8 @@ function prepare_msbuild {
         # downloaded binaries are good enough.
     fi
     # https://github.com/dotnet/msbuild/pull/7731
-    if git merge-base --is-ancestor 67deba37040a HEAD && \
-            ! git merge-base --is-ancestor 486a4599f4a5 HEAD; then
+    if git merge-base --is-ancestor 67deba37040a HEAD &&
+        ! git merge-base --is-ancestor 486a4599f4a5 HEAD; then
         git cherry-pick 486a4599f4a5
         need_msbuild=1
     fi
