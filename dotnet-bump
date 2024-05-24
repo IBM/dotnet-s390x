@@ -41,7 +41,7 @@ function echo_property {
 
     value=$(xmllint --xpath "/Project/PropertyGroup/${property}/text()" "$path")
     # shellcheck disable=SC2016
-    if [ "${value:0:2}" = '$(' ] && [ "${value:${#value} - 1}" = ')' ]; then
+    if [ "${value:0:2}" = '$(' ] && [ "${value:${#value}-1}" = ')' ]; then
         echo_property "$name" "$path" "${value:2:-1}"
     else
         echo "$name=$value"
@@ -75,8 +75,8 @@ fi
 manifest=$(curl -L "$url")
 # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
 # installer_commit="c8d103ed3c46cca9bb78098da723037e2be73bce" installer_version="8.0.100-alpha.1.23061.8"
-if [[ "$manifest" =~ installer:([0-9a-f]+),\ ([^[:space:]]+) ]] || \
-   [[ "$manifest" =~ installer_commit=\"([0-9a-f]+)\"\ installer_version=\"([^\"]+)\" ]]; then
+if [[ "$manifest" =~ installer:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
+    [[ "$manifest" =~ installer_commit=\"([0-9a-f]+)\"\ installer_version=\"([^\"]+)\" ]]; then
     installer_sha=${BASH_REMATCH[1]}
     installer_version=${BASH_REMATCH[2]}
     git fetch --tags
@@ -98,7 +98,7 @@ cd ..
 echo_version installer "$installer_version" >dotnet-versions
 git add installer
 for repo in "${repos[@]}"; do
-    IFS=: read -r -a path_name <<< "$repo"
+    IFS=: read -r -a path_name <<<"$repo"
     xpath="string(/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[2]}\"]/@Version)"
     version=$(xmllint --xpath "$xpath" "${path_name[1]}"/eng/Version.Details.xml)
     if "${path_name[3]}"; then
