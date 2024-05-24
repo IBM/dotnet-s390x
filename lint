@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e -u -x
+scripts=(
+    dotnet-build
+    dotnet-bump
+    dotnet-cleanup
+    dotnet-daily
+    dotnet-prepare
+    dotnet-release
+    dotnet-test-sdk
+    lint
+)
+shfmt -d -i 4 "${scripts[@]}"
+shellcheck -x "${scripts[@]}"
