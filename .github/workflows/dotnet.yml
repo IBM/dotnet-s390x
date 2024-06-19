@@ -142,7 +142,7 @@ jobs:
           local-downloads/
           local-packages/
           output/
-  sdk:
+  aspnetcore:
     needs: roslyn
     runs-on: ubuntu-latest
     strategy:
@@ -176,51 +176,6 @@ jobs:
       with:
         name: roslyn-${{ matrix.arch }}
     - name: Prepare
-      run: ./dotnet-prepare sdk
-    - name: Build
-      run: ARCH=${{ matrix.arch }} ./dotnet-build sdk
-    - name: Upload the intermediate results
-      uses: actions/upload-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
-      with:
-        name: sdk-${{ matrix.arch }}
-        path: |
-          local-downloads/
-          local-packages/
-          output/
-  aspnetcore:
-    needs: sdk
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # TODO: aspnetcore build fails on x64 with:
-        # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
-        arch: [ppc64le, s390x]
-        isV6:
-        - ${{ startsWith(github.ref, 'refs/tags/v6.') }}
-        exclude:
-        - arch: ppc64le
-          isV6: true
-    container:
-      image: ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-      # Workaround for the following:
-      # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
-      options: --user root
-    steps:
-    - name: Configure git
-      run: git config --global user.email iii@linux.ibm.com &&
-           git config --global user.name "dotnet-s390x bot"
-    - name: Checkout
-      uses: actions/checkout@v1  # Newer versions are not compatible with Ubuntu 18.04
-    - name: Fix the repository ownership
-      run: chown -R "$(id -u):$(id -g)" .
-    - name: Download the previous stage's artifacts
-      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
-      with:
-        name: sdk-${{ matrix.arch }}
-    - name: Prepare
       run: ./dotnet-prepare aspnetcore
     - name: Build
       run: ARCH=${{ matrix.arch }} ./dotnet-build aspnetcore
@@ -232,7 +187,7 @@ jobs:
           local-downloads/
           local-packages/
           output/
-  installer:
+  sdk:
     needs: aspnetcore
     runs-on: ubuntu-latest
     strategy:
@@ -266,20 +221,19 @@ jobs:
       with:
         name: aspnetcore-${{ matrix.arch }}
     - name: Prepare
-      run: ./dotnet-prepare installer
+      run: ./dotnet-prepare sdk
     - name: Build
-      run: ARCH=${{ matrix.arch }} ./dotnet-build installer
+      run: ARCH=${{ matrix.arch }} ./dotnet-build sdk
     - name: Upload the intermediate results
       uses: actions/upload-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
       with:
-        name: installer-${{ matrix.arch }}
+        name: sdk-${{ matrix.arch }}
         path: |
-          # Use a dummy file to preserve the directory structure.
-          # See https://github.com/actions/upload-artifact/issues/174 for details.
-          dotnet-versions
+          local-downloads/
+          local-packages/
           output/
   release:
-    needs: installer
+    needs: sdk
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -301,15 +255,15 @@ jobs:
       uses: actions/checkout@v1  # Newer versions are not compatible with Ubuntu 18.04
     - name: Fix the repository ownership
       run: chown -R "$(id -u):$(id -g)" .
-    - name: Download the ppc64le installer artifacts
+    - name: Download the ppc64le sdk artifacts
       uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
       with:
-        name: installer-ppc64le
+        name: sdk-ppc64le
       if: ${{ !startsWith(github.ref, 'refs/tags/v6.') }}
-    - name: Download the s390x installer artifacts
+    - name: Download the s390x sdk artifacts
       uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
       with:
-        name: installer-s390x
+        name: sdk-s390x
     - name: Create a release
       run: gh release create --notes "" "${{ github.ref_name }}" output/*
       env:

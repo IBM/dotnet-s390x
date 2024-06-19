@@ -164,18 +164,10 @@ function prepare_aspnetcore {
     popd
 }
 
-function prepare_installer {
-    pushd installer
-    update_nuget_config
-    # https://github.com/dotnet/installer/pull/14173
-    backport "" 5501c7f23811
-    popd
-}
-
 if [ "$#" -gt 0 ]; then
     projects=("$@")
 else
-    projects=(runtime msbuild roslyn sdk aspnetcore installer)
+    projects=(runtime msbuild roslyn sdk aspnetcore)
 fi
 
 git submodule update --init --recursive -- "${projects[@]}"
