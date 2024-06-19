@@ -30,7 +30,7 @@ runtime_flavor=Mono
 msbuild_conf=Release
 roslyn_conf=Release
 aspnetcore_conf=Release
-installer_conf=Release
+sdk_conf=Release
 
 function build_runtime {
     runtime_build_flags=(
@@ -167,12 +167,20 @@ function build_sdk {
         --pack
         --configuration "$SDK_CONF"
         "/p:Architecture=$ARCH"
+	"/p:HostRid=linux-x64"
+	"/p:BundleRuntimePacks=true"
+	"/p:PublicBaseURL=file://$DOWNLOADDIR/"
+	"/p:CoreSetupBlobRootUrl=file://$DOWNLOADDIR/"
+	"/p:DotnetToolsetBlobRootUrl=file://$DOWNLOADDIR/"
     )
     if [ "$sdk_build_id" != "" ]; then
         sdk_build_flags+=(
             "/p:ContinuousIntegrationBuild=true"
             "/p:OfficialBuildId=$sdk_build_id"
         )
+    fi
+    if [ "$runtime_flavor" = Mono ]; then
+	sdk_build_flags+=("/p:DISABLE_CROSSGEN=true")
     fi
     if [ "$sdk_version_suffix" != "" ]; then
         SDK_VERSION=$SDK_VERSION-$sdk_version_suffix
@@ -184,6 +192,7 @@ function build_sdk {
     if [ -z ${SKIP_PACKAGE_SDK+x} ] && [ ! -e .skip-package ]; then
         mkdir -p "$DOWNLOADDIR/Sdk/$SDK_VERSION"
         cp "artifacts/packages/Release/NonShipping/dotnet-toolset-internal-$SDK_VERSION.zip" "$DOWNLOADDIR/Sdk/$SDK_VERSION"
+	cp "artifacts/packages/$sdk_conf/Shipping/dotnet-sdk-$SDK_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
     fi
     popd
 }
@@ -253,46 +262,10 @@ function build_aspnetcore {
     popd
 }
 
-function build_installer {
-    INSTALLER_VERSION=$installer_version_prefix
-    installer_build_flags=(
-        --ci
-        --configuration "$installer_conf"
-        "/p:HostRid=linux-x64"
-        "/p:Architecture=$ARCH"
-        "/p:BundleRuntimePacks=true"
-        "/p:PublicBaseURL=file://$DOWNLOADDIR/"
-        "/p:CoreSetupBlobRootUrl=file://$DOWNLOADDIR/"
-        "/p:DotnetToolsetBlobRootUrl=file://$DOWNLOADDIR/"
-    )
-    if [ "$installer_build_id" != "" ]; then
-        installer_build_flags+=(
-            "/p:ContinuousIntegrationBuild=true"
-            "/p:OfficialBuildId=$installer_build_id"
-        )
-    fi
-    if [ "$runtime_flavor" = Mono ]; then
-        installer_build_flags+=("/p:DISABLE_CROSSGEN=true")
-    fi
-    if [ "$installer_version_suffix" != "" ]; then
-        INSTALLER_VERSION=$INSTALLER_VERSION-$installer_version_suffix
-    fi
-    pushd installer
-    if [ -z ${SKIP_BUILD_INSTALLER+x} ] && [ ! -e .skip-build ]; then
-        rm -rf artifacts
-        # Setting HostRid to linux- instead of ubuntu- avoids requiring Debian installer packages
-        ./build.sh "${installer_build_flags[@]}"
-    fi
-    if [ -z ${SKIP_PACKAGE_INSTALLER+x} ] && [ ! -e .skip-package ]; then
-        cp "artifacts/packages/$installer_conf/Shipping/dotnet-sdk-$INSTALLER_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
-    fi
-    popd
-}
-
 if [ "$#" -gt 0 ]; then
     projects=("$@")
 else
-    projects=(runtime msbuild roslyn sdk aspnetcore installer)
+    projects=(runtime msbuild roslyn aspnetcore sdk)
 fi
 
 for project in "${projects[@]}"; do

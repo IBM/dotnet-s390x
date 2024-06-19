@@ -62,41 +62,41 @@ while [ $# -gt 0 ]; do
     shift
 done
 if [ $# -gt 0 ]; then
-    installer_version=$1
+    sdk_version=$1
     shift
 fi
 git submodule update --init --recursive
-cd installer
-if [[ -z ${installer_version+x} ]]; then
+cd sdk
+if [[ -z ${sdk_version+x} ]]; then
     url=https://aka.ms/dotnet/$platform/daily/productCommit-linux-x64.txt
 else
-    url=https://dotnetbuilds.azureedge.net/public/Sdk/$installer_version/productCommit-linux-x64.txt
+    url=https://dotnetbuilds.azureedge.net/public/Sdk/$sdk_version/productCommit-linux-x64.txt
 fi
 manifest=$(curl -L "$url")
 # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
 # installer_commit="c8d103ed3c46cca9bb78098da723037e2be73bce" installer_version="8.0.100-alpha.1.23061.8"
-if [[ "$manifest" =~ installer:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
-    [[ "$manifest" =~ installer_commit=\"([0-9a-f]+)\"\ installer_version=\"([^\"]+)\" ]]; then
-    installer_sha=${BASH_REMATCH[1]}
-    installer_version=${BASH_REMATCH[2]}
+if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
+    [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
+    sdk_sha=${BASH_REMATCH[1]}
+    sdk_version=${BASH_REMATCH[2]}
     git fetch --tags
-    git checkout --force "$installer_sha"
+    git checkout --force "$sdk_sha"
 else
     git fetch --tags
-    git checkout --force "v$installer_version"
+    git checkout --force "v$sdk_version"
 fi
 repos=(
-    runtime:installer:Microsoft.NETCore.App.Ref:true
-    msbuild:installer:Microsoft.Build:true
-    roslyn:installer:Microsoft.Net.Compilers.Toolset:true
-    sdk:installer:Microsoft.NET.Sdk:true
-    aspnetcore:installer:Microsoft.AspNetCore.App.Ref:true
-    aspnetcore_internal:installer:Microsoft.AspNetCore.App.Ref.Internal:false
+    runtime:sdk:Microsoft.NETCore.App.Ref:true
+    msbuild:sdk:Microsoft.Build:true
+    roslyn:sdk:Microsoft.Net.Compilers.Toolset:true
+    #sdk:sdk:Microsoft.NET.Sdk:true
+    aspnetcore:sdk:Microsoft.AspNetCore.App.Ref:true
+    aspnetcore_internal:sdk:Microsoft.AspNetCore.App.Ref.Internal:false
     templating:sdk:Microsoft.TemplateEngine.Abstractions:true
 )
 cd ..
-echo_version installer "$installer_version" >dotnet-versions
-git add installer
+echo_version sdk "$sdk_version" >dotnet-versions
+git add sdk
 for repo in "${repos[@]}"; do
     IFS=: read -r -a path_name <<<"$repo"
     xpath="string(/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[2]}\"]/@Version)"
@@ -131,5 +131,5 @@ done
 } >>dotnet-versions
 
 git add dotnet-versions
-git commit --allow-empty --message="v$installer_version" --signoff
-git tag "v$installer_version"
+git commit --allow-empty --message="v$sdk_version" --signoff
+git tag "v$sdk_version"
