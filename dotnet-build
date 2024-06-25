@@ -167,11 +167,11 @@ function build_sdk {
         --pack
         --configuration "$SDK_CONF"
         "/p:Architecture=$ARCH"
-	"/p:HostRid=linux-x64"
-	"/p:BundleRuntimePacks=true"
-	"/p:PublicBaseURL=file://$DOWNLOADDIR/"
-	"/p:CoreSetupBlobRootUrl=file://$DOWNLOADDIR/"
-	"/p:DotnetToolsetBlobRootUrl=file://$DOWNLOADDIR/"
+        "/p:HostRid=linux-x64"
+        "/p:BundleRuntimePacks=true"
+        "/p:PublicBaseURL=file://$DOWNLOADDIR/"
+        "/p:CoreSetupBlobRootUrl=file://$DOWNLOADDIR/"
+        "/p:DotnetToolsetBlobRootUrl=file://$DOWNLOADDIR/"
     )
     if [ "$sdk_build_id" != "" ]; then
         sdk_build_flags+=(
@@ -180,7 +180,7 @@ function build_sdk {
         )
     fi
     if [ "$runtime_flavor" = Mono ]; then
-	sdk_build_flags+=("/p:DISABLE_CROSSGEN=true")
+        sdk_build_flags+=("/p:DISABLE_CROSSGEN=true")
     fi
     if [ "$sdk_version_suffix" != "" ]; then
         SDK_VERSION=$SDK_VERSION-$sdk_version_suffix
@@ -192,7 +192,7 @@ function build_sdk {
     if [ -z ${SKIP_PACKAGE_SDK+x} ] && [ ! -e .skip-package ]; then
         mkdir -p "$DOWNLOADDIR/Sdk/$SDK_VERSION"
         cp "artifacts/packages/Release/NonShipping/dotnet-toolset-internal-$SDK_VERSION.zip" "$DOWNLOADDIR/Sdk/$SDK_VERSION"
-	cp "artifacts/packages/$sdk_conf/Shipping/dotnet-sdk-$SDK_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
+        cp "artifacts/packages/$sdk_conf/Shipping/dotnet-sdk-$SDK_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
     fi
     popd
 }
