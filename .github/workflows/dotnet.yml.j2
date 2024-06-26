@@ -17,7 +17,7 @@ permissions:
 
 {%- set arches = ['ppc64le', 's390x'] -%}
 
-{%- set projects = ['runtime', 'msbuild', 'roslyn', 'sdk', 'aspnetcore', 'installer'] %}
+{%- set projects = ['runtime', 'msbuild', 'roslyn', 'aspnetcore', 'sdk'] %}
 
 {%- set matrix -%}
     strategy:
@@ -79,18 +79,12 @@ jobs:
       with:
         name: {{ projects[i] }}-{% raw %}${{ matrix.arch }}{% endraw %}
         path: |
-          {%- if projects[i] != 'installer' %}
           local-downloads/
           local-packages/
-          {%- else %}
-          # Use a dummy file to preserve the directory structure.
-          # See https://github.com/actions/upload-artifact/issues/174 for details.
-          dotnet-versions
-          {%- endif %}
           output/
 {%- endfor %}
   release:
-    needs: installer
+    needs: sdk
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -100,10 +94,10 @@ jobs:
     steps:
     {{ checkout_steps }}
     {%- for arch in arches %}
-    - name: Download the {{ arch }} installer artifacts
+    - name: Download the {{ arch }} sdk artifacts
       uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
       with:
-        name: installer-{{ arch }}
+        name: sdk-{{ arch }}
     {%- if arch == 'ppc64le' %}
       if: {% raw %}${{ !startsWith(github.ref, 'refs/tags/v6.') }}{% endraw %}
     {%- endif %}
