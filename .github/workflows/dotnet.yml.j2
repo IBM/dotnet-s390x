@@ -53,6 +53,10 @@ permissions:
       run: chown -R "$(id -u):$(id -g)" .
 {%- endset %}
 
+{#- Newer versions use node20 binary, which is not compatible with Ubuntu 18.04 #}
+{%- set download_artifact -%}actions/download-artifact@v3.0.2{%- endset %}
+{%- set upload_artifact -%}actions/upload-artifact@v3.1.3{%- endset %}
+
 jobs:
 {%- for i in range(projects | length) %}
   {{ projects[i] }}:
@@ -66,7 +70,7 @@ jobs:
     {{ checkout_steps }}
     {%- if i != 0 %}
     - name: Download the previous stage's artifacts
-      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      uses: {{ download_artifact }}
       with:
         name: {{ projects[i - 1] }}-{% raw %}${{ matrix.arch }}{% endraw %}
     {%- endif %}
@@ -75,7 +79,7 @@ jobs:
     - name: Build
       run: ARCH={% raw %}${{ matrix.arch }}{% endraw %} ./dotnet-build {{ projects[i] }}
     - name: Upload the intermediate results
-      uses: actions/upload-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      uses: {{ upload_artifact }}
       with:
         name: {{ projects[i] }}-{% raw %}${{ matrix.arch }}{% endraw %}
         path: |
@@ -95,7 +99,7 @@ jobs:
     {{ checkout_steps }}
     {%- for arch in arches %}
     - name: Download the {{ arch }} sdk artifacts
-      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      uses: {{ download_artifact }}
       with:
         name: sdk-{{ arch }}
     {%- if arch == 'ppc64le' %}
