@@ -66,7 +66,7 @@ jobs:
     {{ checkout_steps }}
     {%- if i != 0 %}
     - name: Download the previous stage's artifacts
-      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      uses: actions/download-artifact@v2  # Newer versions are not compatible with Ubuntu 18.04
       with:
         name: {{ projects[i - 1] }}-{% raw %}${{ matrix.arch }}{% endraw %}
     {%- endif %}
@@ -75,7 +75,7 @@ jobs:
     - name: Build
       run: ARCH={% raw %}${{ matrix.arch }}{% endraw %} ./dotnet-build {{ projects[i] }}
     - name: Upload the intermediate results
-      uses: actions/upload-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      uses: actions/upload-artifact@v2  # Newer versions are not compatible with Ubuntu 18.04
       with:
         name: {{ projects[i] }}-{% raw %}${{ matrix.arch }}{% endraw %}
         path: |
@@ -95,7 +95,7 @@ jobs:
     {{ checkout_steps }}
     {%- for arch in arches %}
     - name: Download the {{ arch }} sdk artifacts
-      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      uses: actions/download-artifact@v2  # Newer versions are not compatible with Ubuntu 18.04
       with:
         name: sdk-{{ arch }}
     {%- if arch == 'ppc64le' %}
