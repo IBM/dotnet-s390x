@@ -1,27 +1,9 @@
 #!/bin/bash
 set -e -u -x -o pipefail
 basedir=$(cd "$(dirname "$0")"/.. && pwd)
-mkdir -p "$basedir"/home/.nuget
-mkdir -p "$basedir"/home/.local/share/NuGet
 workdir=$(mktemp -d)
 trap 'rm -r "$workdir"' EXIT
 iidfile=$workdir/iid
-ARCH=${ARCH-s390x}
 "$basedir"/docker/build --iidfile="$iidfile"
 iid=$(cat "$iidfile")
-read -ra tty_arg < <([ ! -t 0 ] || echo --tty) || true
-exec docker run \
-    --env=ARCH="$ARCH" \
-    --env=HOME="$HOME" \
-    --init \
-    --interactive \
-    --rm \
-    "${tty_arg[@]}" \
-    --ulimit=nofile=16384 \
-    --volume="$basedir:$basedir:z" \
-    --volume="$HOME:$HOME:z" \
-    --volume="$basedir/home/.nuget:$HOME/.nuget:z" \
-    --volume="$basedir/home/.local/share/NuGet:$HOME/.local/share/NuGet:z" \
-    --workdir="$basedir" \
-    "$iid" \
-    bash -c "groupadd -g $(id -g) $(id -ng) ; useradd -u $(id -u) -g $(id -g) $(id -nu) ; exec runuser -u $(id -nu) -- \"\$@\"" -- "$@"
+"$basedir"/docker/run-image "$iid" "$@"

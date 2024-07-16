@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e -u -x
 scripts=(
+    docker/build
+    docker/run
+    docker/run-image
     dotnet-build
     dotnet-bump
     dotnet-cleanup
