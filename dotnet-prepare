@@ -1,8 +1,13 @@
 #!/bin/bash
-set -e -u -x
+set -e -u -x -o pipefail
 
 BASEDIR=$(pwd)
 PACKAGESDIR=${BASEDIR}/local-packages
+
+filter=()
+if git -C "$(dirname "$0")" fetch --filter=tree:0 >/dev/null 2>&1; then
+    filter=(--filter=tree:0)
+fi
 
 function update_nuget_config {
     gawk -f - -i inplace NuGet.config <<EOF
@@ -63,7 +68,7 @@ function backport {
 
 function prepare_runtime {
     pushd runtime
-    git fetch
+    git fetch "${filter[@]}"
     # [custom_attrs] Use the image's ALC instead of the default one
     # https://github.com/dotnet/runtime/pull/70346
     backport "" 32670bdf9973
@@ -170,7 +175,7 @@ else
     projects=(runtime msbuild roslyn sdk aspnetcore)
 fi
 
-git submodule update --init --recursive -- "${projects[@]}"
+git submodule update "${filter[@]}" --init --recursive -- "${projects[@]}"
 
 for project in "${projects[@]}"; do
     eval "prepare_${project}"
