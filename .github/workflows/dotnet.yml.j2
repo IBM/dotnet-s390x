@@ -15,15 +15,17 @@ on:
 permissions:
   packages: read
 
-{%- set arches = ['ppc64le', 's390x'] -%}
+{#-
+TODO: aspnetcore build fails on x64 with:
+EXEC : error : Failed to load assembly 'System.Private.CoreLib'
+-#}
+{%- set arches = ['ppc64le', 's390x'] %}
 
 {%- set projects = ['runtime', 'msbuild', 'roslyn', 'aspnetcore', 'sdk'] %}
 
 {%- set matrix -%}
     strategy:
       matrix:
-        # TODO: aspnetcore build fails on x64 with:
-        # EXEC : error : Failed to load assembly 'System.Private.CoreLib'
         arch: [{{ ', '.join(arches) }}]
         isV6:
         - {% raw %}${{ startsWith(github.ref, 'refs/tags/v6.') }}{% endraw %}
@@ -32,25 +34,20 @@ permissions:
           isV6: true
 {%- endset %}
 
-{%- set container -%}
-    container:
-      image: ghcr.io/ibm/dotnet-{% raw %}${{ matrix.arch }}{% endraw %}-toolchain:latest
-      credentials:
-        username: {% raw %}${{ github.actor }}{% endraw %}
-        password: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
-      # Workaround for the following:
-      # fatal: detected dubious ownership in repository at '/__w/dotnet-s390x/dotnet-s390x'
-      options: --user root
-{%- endset %}
+{%- set image -%}ghcr.io/ibm/dotnet-{% raw %}${{ matrix.arch }}{% endraw %}-toolchain:latest{%- endset %}
 
-{%- set checkout_steps -%}
+{%- set init_steps -%}
     - name: Configure git
       run: git config --global user.email iii@linux.ibm.com &&
            git config --global user.name "dotnet-s390x bot"
-    - name: Checkout
-      uses: actions/checkout@v1  # Newer versions are not compatible with Ubuntu 18.04
-    - name: Fix the repository ownership
-      run: chown -R "$(id -u):$(id -g)" .
+    - name: Checkout dotnet-s390x
+      uses: actions/checkout@v4
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: {% raw %}${{ github.actor }}{% endraw %}
+        password: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
 {%- endset %}
 
 jobs:
@@ -61,21 +58,20 @@ jobs:
     {%- endif %}
     runs-on: ubuntu-latest
     {{ matrix }}
-    {{ container }}
     steps:
-    {{ checkout_steps }}
+    {{ init_steps }}
     {%- if i != 0 %}
     - name: Download the previous stage's artifacts
-      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      uses: actions/download-artifact@v4
       with:
         name: {{ projects[i - 1] }}-{% raw %}${{ matrix.arch }}{% endraw %}
     {%- endif %}
     - name: Prepare
       run: ./dotnet-prepare {{ projects[i] }}
     - name: Build
-      run: ARCH={% raw %}${{ matrix.arch }}{% endraw %} ./dotnet-build {{ projects[i] }}
+      run: ARCH={% raw %}${{ matrix.arch }}{% endraw %} ./docker/run-image {{ image }} ./dotnet-build {{ projects[i] }}
     - name: Upload the intermediate results
-      uses: actions/upload-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      uses: actions/upload-artifact@v4
       with:
         name: {{ projects[i] }}-{% raw %}${{ matrix.arch }}{% endraw %}
         path: |
@@ -90,12 +86,11 @@ jobs:
       matrix:
         arch: [x64]
     if: {% raw %}${{ github.event_name == 'push' && github.ref_type == 'tag' }}{% endraw %}
-    {{ container }}
     steps:
-    {{ checkout_steps }}
+    {{ init_steps }}
     {%- for arch in arches %}
     - name: Download the {{ arch }} sdk artifacts
-      uses: actions/download-artifact@v3  # Newer versions are not compatible with Ubuntu 18.04
+      uses: actions/download-artifact@v4
       with:
         name: sdk-{{ arch }}
     {%- if arch == 'ppc64le' %}
