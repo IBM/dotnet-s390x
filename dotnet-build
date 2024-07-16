@@ -205,7 +205,6 @@ function build_aspnetcore {
         --configuration "$aspnetcore_conf"
         --pack
         "/p:DotNetAssetRootUrl=file://$DOWNLOADDIR/"
-        "/p:NuGetAudit=false"
     )
     if [ "$aspnetcore_build_id" != "" ]; then
         aspnetcore_build_flags+=(
@@ -268,6 +267,7 @@ else
     projects=(runtime msbuild roslyn aspnetcore sdk)
 fi
 
+export NuGetAudit=false
 for project in "${projects[@]}"; do
     eval "build_${project}"
 done
