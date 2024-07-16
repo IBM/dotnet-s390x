@@ -34,7 +34,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y ca-certificates curl
 COPY fs/ /
-ARG llvm_version=8
+ARG llvm_version=11
 RUN apt-get update && \
     apt-get install --no-install-recommends --yes \
         binutils-multiarch \
