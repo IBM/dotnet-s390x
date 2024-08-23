@@ -38,6 +38,12 @@ EXEC : error : Failed to load assembly 'System.Private.CoreLib'
 {%- set image -%}ghcr.io/ibm/dotnet-{% raw %}${{ matrix.arch }}{% endraw %}-toolchain:latest{%- endset %}
 
 {%- set init_steps -%}
+    - name: Show free disk space
+      run: df -h
+    - name: Free some disk space
+      run: rm -r /opt/hostedtoolcache
+    - name: Show free disk space
+      run: df -h
     - name: Configure git
       run: git config --global user.email iii@linux.ibm.com &&
            git config --global user.name "dotnet-s390x bot"
