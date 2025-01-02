@@ -48,7 +48,7 @@ function echo_property {
     fi
 }
 
-platform=9.0.1xx
+platform=10.0.1xx
 while [ $# -gt 0 ]; do
     case "$1" in
     --platform)
