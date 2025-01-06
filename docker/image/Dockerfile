@@ -40,6 +40,7 @@ RUN apt-get update && \
         binutils-multiarch \
         clang-$llvm_version \
         cpio \
+        file \
         gawk \
         git \
         jq \
