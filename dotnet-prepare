@@ -108,6 +108,10 @@ function prepare_runtime {
     backport 51bf70e94b0c "../runtime-patches/Fix-cmakeargs-in-coreclr-proj.patch 7d562f9d2a42 2811e7c7551c"
     # https://github.com/dotnet/runtime/pull/93875
     backport 1c80769c0d6e "dc944d57c4f4 3cd64558e864"
+    # https://github.com/dotnet/runtime/pull/107559
+    backport ab28e0a0c263 4930e1b44027
+    # https://github.com/dotnet/runtime/pull/110985
+    backport a5eced487f63 1613dd360914
 
     if [ -s ../runtime-patches/series ]; then
         rm -rf .pc

@@ -39,7 +39,7 @@ RUN apt-get update && \
     apt-get install --no-install-recommends --yes \
         binutils-multiarch \
         clang-$llvm_version \
-        file \
+        cpio \
         gawk \
         git \
         jq \
