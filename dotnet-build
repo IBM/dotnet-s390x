@@ -206,6 +206,13 @@ function build_aspnetcore {
         --pack
         "/p:DotNetAssetRootUrl=file://$DOWNLOADDIR/"
     )
+    if [ "$runtime_major_version" -gt 9 ]; then
+        aspnetcore_build_flags+=(
+            "/p:PublicBaseURL=file://$DOWNLOADDIR/"
+            "/p:MicrosoftNETCoreAppRuntimeVersion=$runtime_version"
+            "/p:DotNetRuntimeDownloadPath=Runtime/$runtime_version/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz"
+        )
+    fi
     if [ "$aspnetcore_build_id" != "" ]; then
         aspnetcore_build_flags+=(
             "/p:ContinuousIntegrationBuild=true"
@@ -248,9 +255,17 @@ function build_aspnetcore {
         if [ -e "$spa_templates" ]; then
             cp "$spa_templates" "$PACKAGESDIR"
         fi
-        aspnetcore_tgz=artifacts/installers/$aspnetcore_conf/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+        if [ "$aspnetcore_major_version" -lt 10 ]; then
+            aspnetcore_tgz=artifacts/installers/$aspnetcore_conf/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+        else
+            aspnetcore_tgz=artifacts/packages/$aspnetcore_conf/Shipping/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+        fi
         if [ ! -e "$aspnetcore_tgz" ]; then
-            aspnetcore_tgz=artifacts/installers/$aspnetcore_conf/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+            if [ "$aspnetcore_major_version" -lt 10 ]; then
+                aspnetcore_tgz=artifacts/installers/$aspnetcore_conf/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+            else
+                aspnetcore_tgz=artifacts/packages/$aspnetcore_conf/Shipping/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
+            fi
         fi
         mkdir -p "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
         cp "$aspnetcore_tgz" "$DOWNLOADDIR/aspnetcore/Runtime/$aspnetcore_internal_version"
