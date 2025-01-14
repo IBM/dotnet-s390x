@@ -255,13 +255,13 @@ function build_aspnetcore {
         if [ -e "$spa_templates" ]; then
             cp "$spa_templates" "$PACKAGESDIR"
         fi
-        if [ "$aspnetcore_major_version" -lt 10 ]; then
+        if ! git merge-base --is-ancestor 7949421 HEAD; then
             aspnetcore_tgz=artifacts/installers/$aspnetcore_conf/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
         else
             aspnetcore_tgz=artifacts/packages/$aspnetcore_conf/Shipping/aspnetcore-runtime-internal-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
         fi
         if [ ! -e "$aspnetcore_tgz" ]; then
-            if [ "$aspnetcore_major_version" -lt 10 ]; then
+            if ! git merge-base --is-ancestor 7949421 HEAD; then
                 aspnetcore_tgz=artifacts/installers/$aspnetcore_conf/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
             else
                 aspnetcore_tgz=artifacts/packages/$aspnetcore_conf/Shipping/aspnetcore-runtime-$ASPNETCORE_VERSION-linux-$ARCH.tar.gz
