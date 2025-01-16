@@ -84,8 +84,13 @@ function build_runtime {
             "artifacts/packages/$runtime_conf/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" \
             "$DOWNLOADDIR/Runtime/$aspnetcore_transport_version/dotnet-runtime-$aspnetcore_runtime_version-linux-$ARCH.tar.gz"
         cp "artifacts/packages/$runtime_conf/Shipping/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz" "$OUTPUTDIR"
-        cp "artifacts/packages/$runtime_conf/Shipping/dotnet-runtime-symbols-linux-$ARCH-$runtime_version.tar.gz" "$OUTPUTDIR"
         cp "artifacts/packages/$runtime_conf/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
+        if ! git merge-base --is-ancestor e68313e HEAD; then
+            cp "artifacts/packages/$runtime_conf/Shipping/dotnet-runtime-symbols-linux-$ARCH-$runtime_version.tar.gz" "$OUTPUTDIR"
+        else
+            cp "artifacts/packages/$runtime_conf/Shipping/Microsoft.NETCore.App.Host.linux-$ARCH.$runtime_version.symbols.nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.symbols.nupkg" "$OUTPUTDIR"
+        fi
         cp "artifacts/packages/$runtime_conf/Shipping/Microsoft.NETCore.App.Runtime.linux-$ARCH.$runtime_version.nupkg" "$OUTPUTDIR"
         if [ "$runtime_major_version" -lt 9 ]; then
             # https://github.com/dotnet/runtime/pull/91655
