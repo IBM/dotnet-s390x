@@ -70,7 +70,7 @@ cd sdk
 if [[ -z ${sdk_version+x} ]]; then
     url=https://aka.ms/dotnet/$platform/daily/productCommit-linux-x64.txt
 else
-    url=https://dotnetbuilds.azureedge.net/public/Sdk/$sdk_version/productCommit-linux-x64.txt
+    url=https://ci.dot.net/public/Sdk/$sdk_version/productCommit-linux-x64.txt
 fi
 manifest=$(curl -L "$url")
 # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
