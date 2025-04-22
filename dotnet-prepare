@@ -109,7 +109,7 @@ function prepare_runtime {
     # https://github.com/dotnet/runtime/pull/93875
     backport 1c80769c0d6e "dc944d57c4f4 3cd64558e864"
     # https://github.com/dotnet/runtime/pull/107559
-    backport ab28e0a0c263 4930e1b44027
+    backport ab28e0a0c263 "4930e1b44027 c6d8192481ad"
     # https://github.com/dotnet/runtime/pull/110985
     backport a5eced487f63 1613dd360914
 
