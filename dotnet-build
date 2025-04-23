@@ -189,7 +189,7 @@ function build_sdk {
     fi
     if [ -z ${SKIP_PACKAGE_SDK+x} ] && [ ! -e .skip-package ]; then
         mkdir -p "$DOWNLOADDIR/Sdk/$SDK_VERSION"
-        if ! git merge-base --is-ancestor 140ff5e HEAD; then
+        if git merge-base --is-ancestor 140ff5e HEAD; then
             cp "artifacts/packages/Release/NonShipping/dotnet-toolset-internal-$SDK_VERSION.zip" "$DOWNLOADDIR/Sdk/$SDK_VERSION"
         fi
         cp "artifacts/packages/$sdk_conf/Shipping/dotnet-sdk-$SDK_VERSION-linux-$ARCH.tar.gz" "$OUTPUTDIR"
