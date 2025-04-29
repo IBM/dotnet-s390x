@@ -170,7 +170,7 @@ function prepare_sdk {
 function prepare_aspnetcore {
     pushd aspnetcore
     # https://github.com/dotnet/aspnetcore/commit/0547a0a2c8341a496ca534661942919a0b154a8f
-    backport 1368813 "../aspnetcore-patches/0001-Update-baseline-SDK-branding.patch"
+    backport 1368813 "../aspnetcore-patches/0001-Update-baseline-SDK-branding.patch 0547a0a2c8341a496ca534661942919a0b154a8f"
     update_nuget_config
     popd
 }
