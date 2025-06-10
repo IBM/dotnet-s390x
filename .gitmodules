@@ -19,3 +19,6 @@
 [submodule "templating"]
 	path = templating
 	url = https://github.com/dotnet/templating
+[submodule "dotnet"]
+	path = dotnet
+	url = https://github.com/dotnet/dotnet.git
