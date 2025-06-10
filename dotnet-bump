@@ -66,12 +66,21 @@ if [ $# -gt 0 ]; then
     shift
 fi
 git submodule update --init --recursive
-#cd sdk
 if [[ -z ${sdk_version+x} ]]; then
     url=https://aka.ms/dotnet/$platform/daily/productCommit-linux-x64.txt
 else
-    url=https://builds.dotnet.microsoft.com/dotnet/Sdk/$sdk_version/productCommit-linux-x64.txt
+    #url=https://builds.dotnet.microsoft.com/dotnet/Sdk/$sdk_version/productCommit-linux-x64.txt
+    urls=(
+        "https://builds.dotnet.microsoft.com/dotnet/Sdk/$sdk_version/productCommit-linux-x64.txt"
+        "https://ci.dot.net/public/Sdk/$sdk_version/productCommit-linux-x64.txt"
+    )
+
+    for u in "${urls[@]}"; do
+        curl --head --silent --fail "$u" > /dev/null && { url="$u"; break; }
+    done
+
 fi
+
 manifest=$(curl -L "$url")
 # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
 # installer_commit="c8d103ed3c46cca9bb78098da723037e2be73bce" installer_version="8.0.100-alpha.1.23061.8"
@@ -117,17 +126,15 @@ if $all_same;then
 	for repo in "${repos[@]}"; do
 		IFS=: read -r -a path_name <<<"$repo"
     		if "${path_name[3]}"; then
+			sha=$(grep -A3 "\"path\": \"${path_name[0]}\"" dotnet/src/source-manifest.json | grep '"commitSha"' | awk -F'"' '{print $4}')
 			cd "${path_name[0]}"
-			git fetch --tags
-		        sha=$(grep -A3 "\"path\": \"$repo_path\"" dotnet/src/source-manifest.json | grep '"commitSha"' | awk -F'"' '{print $4}')
+                        git fetch --tags
 			git checkout --force $sha
 			cd ..
 			git add "${path_name[0]}"
 		fi
-		#echo_version "${path_name[0]}" "$version" >>dotnet-versions
-		ver_name="${path_name[0]}_version"
-	    	echo_version "${path_name[0]}" "${!ver_name}" >>dotnet-versions
-
+		version="${path_name[0]}_version"
+	    	echo_version "${path_name[0]}" "${!version}" >>dotnet-versions
 	done
 else
  if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
@@ -141,8 +148,6 @@ else
     git fetch --tags
     git checkout --force "v$sdk_version"
  fi
-
-
 
  cd ..
  echo_version sdk "$sdk_version" >dotnet-versions
@@ -164,19 +169,17 @@ else
  done
 fi
 
-
-
 {
     echo_property \
         aspnetcore_transport_version \
         aspnetcore/eng/Versions.props \
         MicrosoftNETCoreBrowserDebugHostTransportVersion
+
     if $all_same; then
       echo_property \
             aspnetcore_runtime_version \
             aspnetcore/eng/Versions.props \
             MicrosoftNETCoreAppRefVersion
-
     else
       echo_property \
             aspnetcore_runtime_version \
