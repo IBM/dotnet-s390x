@@ -164,13 +164,13 @@ function build_sdk {
         --ci
         --pack
         --configuration "$SDK_CONF"
-        "/p:Architecture=$ARCH"
         "/p:HostRid=linux-x64"
         "/p:BundleRuntimePacks=true"
         "/p:PublicBaseURL=file://$DOWNLOADDIR/"
         "/p:CoreSetupBlobRootUrl=file://$DOWNLOADDIR/"
         "/p:DotnetToolsetBlobRootUrl=file://$DOWNLOADDIR/"
     )
+
     if [ "$sdk_build_id" != "" ]; then
         sdk_build_flags+=(
             "/p:ContinuousIntegrationBuild=true"
@@ -184,6 +184,18 @@ function build_sdk {
         SDK_VERSION=$SDK_VERSION-$sdk_version_suffix
     fi
     pushd sdk
+    if git merge-base --is-ancestor e6ec23d HEAD; then
+            sdk_build_flags+=("/p:TargetArchitecture=$ARCH")
+    else
+            sdk_build_flags+=("/p:Architecture=$ARCH")
+    fi
+    if git merge-base --is-ancestor 5a42929 HEAD; then
+            sdk_build_flags+=("/p:MicrosoftAspNetCoreAppRefPackageVersion=$aspnetcore_version"
+    			      "/p:MicrosoftNETCoreAppRefPackageVersion=$runtime_version"
+		      	      "/p:MicrosoftAspNetCoreAppRefInternalPackageVersion=$aspnetcore_internal_version"
+			      "/p:MicrosoftNETCorePlatformsPackageVersion=$runtime_version")
+    
+    fi
     if [ -z ${SKIP_BUILD_SDK+x} ] && [ ! -e .skip-build ]; then
         ./build.sh "${sdk_build_flags[@]}"
     fi
@@ -209,10 +221,10 @@ function build_aspnetcore {
     if [ "$runtime_major_version" -gt 9 ]; then
         aspnetcore_build_flags+=(
             "/p:PublicBaseURL=file://$DOWNLOADDIR/"
-            "/p:MicrosoftNETCoreAppRuntimeVersion=$runtime_version"
             "/p:DotNetRuntimeDownloadPath=Runtime/$runtime_version/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz"
         )
     fi
+
     if [ "$aspnetcore_build_id" != "" ]; then
         aspnetcore_build_flags+=(
             "/p:ContinuousIntegrationBuild=true"
@@ -226,6 +238,14 @@ function build_aspnetcore {
         aspnetcore_build_flags+=(-arch "$ARCH")
     fi
     pushd aspnetcore
+    if  [ "$runtime_major_version" -gt 9 ]; then 
+	if  [ "$runtime_major_version" -gt 9 ]; then
+	 	aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRefVersion=$runtime_version")
+	else
+		aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRuntimeVersion=$runtime_version")
+	fi
+    fi
+
     if [ -z ${SKIP_BUILD_ASPNETCORE+x} ] && [ ! -e .skip-build ]; then
         # Since commit 243f90d0bec5 ("Use Arcade's DownloadFiles task (#46039)")
         # aspnetcore no longer supports downloading runtime from custom URLs.

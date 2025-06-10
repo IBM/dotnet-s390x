@@ -66,25 +66,24 @@ if [ $# -gt 0 ]; then
     shift
 fi
 git submodule update --init --recursive
-cd sdk
+#cd sdk
 if [[ -z ${sdk_version+x} ]]; then
     url=https://aka.ms/dotnet/$platform/daily/productCommit-linux-x64.txt
 else
-    url=https://ci.dot.net/public/Sdk/$sdk_version/productCommit-linux-x64.txt
+    url=https://builds.dotnet.microsoft.com/dotnet/Sdk/$sdk_version/productCommit-linux-x64.txt
 fi
 manifest=$(curl -L "$url")
 # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
 # installer_commit="c8d103ed3c46cca9bb78098da723037e2be73bce" installer_version="8.0.100-alpha.1.23061.8"
-if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
-    [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
-    sdk_sha=${BASH_REMATCH[1]}
-    sdk_version=${BASH_REMATCH[2]}
-    git fetch --tags
-    git checkout --force "$sdk_sha"
-else
-    git fetch --tags
-    git checkout --force "v$sdk_version"
-fi
+commits=($(echo "$manifest" | grep -oE '(_commit="|sdk:)[0-9a-f]+' | grep -oE '[0-9a-f]+$'))
+ref=${commits[0]}
+all_same=true
+for c in "${commits[@]}"; do
+    if [[ "$c" != "$ref" ]]; then
+        all_same=false
+        break
+    fi
+done
 repos=(
     runtime:sdk:Microsoft.NETCore.App.Ref:true
     msbuild:sdk:Microsoft.Build:true
@@ -94,10 +93,61 @@ repos=(
     aspnetcore_internal:sdk:Microsoft.AspNetCore.App.Ref.Internal:false
     templating:sdk:Microsoft.TemplateEngine.Abstractions:true
 )
-cd ..
-echo_version sdk "$sdk_version" >dotnet-versions
-git add sdk
-for repo in "${repos[@]}"; do
+
+if $all_same;then
+	cd dotnet
+	git checkout $ref
+	commit_sha=$(grep -A3 '"path": "sdk"' src/source-manifest.json | grep -oP '"commitSha":\s*"\K[^"]+')
+	sdk_version=$(echo "$manifest" | grep -oP 'sdk_version="\K[^"]+')
+	runtime_version=$(echo "$manifest" | grep -oP 'runtime_version="\K[^"]+')
+	aspnetcore_version=$(echo "$manifest" | grep -oP 'aspnetcore_version="\K[^"]+')
+	sdk_version=$(echo "$manifest" | grep -oP 'sdk_version="\K[^"]+')
+	templating_version=$sdk_version
+	cd ..
+	xpath="string(/Dependencies/ProductDependencies/Dependency[@Name='Microsoft.Build']/@Version)"
+	msbuild_version=$(xmllint --xpath "$xpath" sdk/eng/Version.Details.xml)
+	roslyn_version=$sdk_version
+	aspnetcore_internal_version=$aspnetcore_version
+	cd sdk
+	git fetch --tags
+	git checkout --force "$commit_sha"
+	cd ..
+	echo_version sdk "$sdk_version" >dotnet-versions
+	git add sdk
+	for repo in "${repos[@]}"; do
+		IFS=: read -r -a path_name <<<"$repo"
+    		if "${path_name[3]}"; then
+			cd "${path_name[0]}"
+			git fetch --tags
+		        sha=$(grep -A3 "\"path\": \"$repo_path\"" dotnet/src/source-manifest.json | grep '"commitSha"' | awk -F'"' '{print $4}')
+			git checkout --force $sha
+			cd ..
+			git add "${path_name[0]}"
+		fi
+		#echo_version "${path_name[0]}" "$version" >>dotnet-versions
+		ver_name="${path_name[0]}_version"
+	    	echo_version "${path_name[0]}" "${!ver_name}" >>dotnet-versions
+
+	done
+else
+ if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
+    [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
+    sdk_sha=${BASH_REMATCH[1]}
+    sdk_version=${BASH_REMATCH[2]}
+    cd sdk
+    git fetch --tags
+    git checkout --force "$sdk_sha"
+ else
+    git fetch --tags
+    git checkout --force "v$sdk_version"
+ fi
+
+
+
+ cd ..
+ echo_version sdk "$sdk_version" >dotnet-versions
+ git add sdk
+ for repo in "${repos[@]}"; do
     IFS=: read -r -a path_name <<<"$repo"
     xpath="string(/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[2]}\"]/@Version)"
     version=$(xmllint --xpath "$xpath" "${path_name[1]}"/eng/Version.Details.xml)
@@ -111,24 +161,34 @@ for repo in "${repos[@]}"; do
         git add "${path_name[0]}"
     fi
     echo_version "${path_name[0]}" "$version" >>dotnet-versions
-done
+ done
+fi
+
+
 
 {
     echo_property \
         aspnetcore_transport_version \
         aspnetcore/eng/Versions.props \
         MicrosoftNETCoreBrowserDebugHostTransportVersion
+    if $all_same; then
+      echo_property \
+            aspnetcore_runtime_version \
+            aspnetcore/eng/Versions.props \
+            MicrosoftNETCoreAppRefVersion
+
+    else
+      echo_property \
+            aspnetcore_runtime_version \
+            aspnetcore/eng/Versions.props \
+            MicrosoftNETCoreAppRuntimeVersion
+    fi
 
     echo_property \
-        aspnetcore_runtime_version \
-        aspnetcore/eng/Versions.props \
-        MicrosoftNETCoreAppRuntimeVersion
-
-    echo_property \
-        runtime_version_label \
-        runtime/eng/Versions.props \
+	runtime_version_label \
+	runtime/eng/Versions.props \
         PreReleaseVersionLabel
-} >>dotnet-versions
+} >> dotnet-versions
 
 git add dotnet-versions
 git commit --allow-empty --message="v$sdk_version" --signoff
