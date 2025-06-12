@@ -65,7 +65,6 @@ if [ $# -gt 0 ]; then
     sdk_version=$1
     shift
 fi
-echo "hi"
 git submodule update --init --recursive
 
 if [[ -z "${sdk_version+x}" ]]; then
