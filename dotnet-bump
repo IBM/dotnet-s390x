@@ -1,8 +1,8 @@
 #!/bin/bash
-set -euo pipefail
+set -e -u -x
 cd "$(dirname "$0")"
 
-echo_version() {
+function echo_version() {
     local name=$1
     local version=$2
 
@@ -33,7 +33,7 @@ echo_version() {
     fi
 }
 
-echo_property() {
+function echo_property() {
     local name=$1
     local path=$2
     local property=$3
@@ -60,7 +60,6 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
-
 if [ $# -gt 0 ]; then
     sdk_version=$1
     shift
@@ -80,15 +79,22 @@ else
             break
         fi
     done
+
+    if [[ -z "${url+x}" ]]; then
+        echo "SDK not published."
+        exit 1
+    fi
+
 fi
+echo "$url"
 manifest=$(curl -L "$url")
 echo "$manifest"
-commits=($(echo "$manifest" | grep -oE '(_commit="|sdk:)[0-9a-f]+' | grep -oE '[0-9a-f]+$'))
+mapfile -t commits < <(echo "$manifest" | grep -oE '(_commit="|sdk:)[0-9a-f]+' | grep -oE '[0-9a-f]+$')
 ref=${commits[0]}
-all_same=true
+all_dotnet_component_versions_same=true
 for c in "${commits[@]}"; do
     if [[ "$c" != "$ref" ]]; then
-        all_same=false
+        all_dotnet_component_versions_same=false
         break
     fi
 done
@@ -102,7 +108,7 @@ repos=(
     "templating:sdk:Microsoft.TemplateEngine.Abstractions:true"
 )
 
-if $all_same; then
+if $all_dotnet_component_versions_same; then
     cd dotnet
     git fetch --tags
     git checkout "$ref"
@@ -178,7 +184,7 @@ fi
 {
     echo_property aspnetcore_transport_version aspnetcore/eng/Versions.props MicrosoftNETCoreBrowserDebugHostTransportVersion
 
-    if $all_same; then
+    if $all_dotnet_component_versions_same; then
         echo_property aspnetcore_runtime_version aspnetcore/eng/Versions.props MicrosoftNETCoreAppRefVersion
     else
         echo_property aspnetcore_runtime_version aspnetcore/eng/Versions.props MicrosoftNETCoreAppRuntimeVersion

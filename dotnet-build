@@ -1,8 +1,9 @@
 #!/bin/bash
+# shellcheck disable=SC2154
 set -e -u -x -o pipefail
 shopt -s extglob
-
 pushd "$(dirname "$0")"
+# shellcheck disable=SC1091
 . dotnet-versions
 popd
 
@@ -170,7 +171,6 @@ function build_sdk {
         "/p:CoreSetupBlobRootUrl=file://$DOWNLOADDIR/"
         "/p:DotnetToolsetBlobRootUrl=file://$DOWNLOADDIR/"
     )
-
     if [ "$sdk_build_id" != "" ]; then
         sdk_build_flags+=(
             "/p:ContinuousIntegrationBuild=true"
@@ -224,7 +224,6 @@ function build_aspnetcore {
             "/p:DotNetRuntimeDownloadPath=Runtime/$runtime_version/dotnet-runtime-$runtime_version-linux-$ARCH.tar.gz"
         )
     fi
-
     if [ "$aspnetcore_build_id" != "" ]; then
         aspnetcore_build_flags+=(
             "/p:ContinuousIntegrationBuild=true"
@@ -238,12 +237,11 @@ function build_aspnetcore {
         aspnetcore_build_flags+=(-arch "$ARCH")
     fi
     pushd aspnetcore
-    if  [ "$runtime_major_version" -gt 9 ]; then 
-	if  [ "$runtime_major_version" -gt 9 ]; then
-	 	aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRefVersion=$runtime_version")
-	else
-		aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRuntimeVersion=$runtime_version")
-	fi
+    if [ "$runtime_major_version" -gt 9 ]; then
+        aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRefVersion=$runtime_version")
+
+    else
+        aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRuntimeVersion=$runtime_version")
     fi
 
     if [ -z ${SKIP_BUILD_ASPNETCORE+x} ] && [ ! -e .skip-build ]; then
