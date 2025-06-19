@@ -51,13 +51,14 @@ function echo_property {
 platform=10.0.1xx
 while [ $# -gt 0 ]; do
     case "$1" in
-        --platform)
-            shift
-            platform=$1
-            ;;
-        *)
-            break
-            ;;
+    --platform)
+        shift
+        platform=$1
+        ;;
+    *)
+        break
+        ;;
+
     esac
     shift
 done
@@ -128,11 +129,11 @@ if $all_dotnet_component_versions_same; then
     git checkout --force "$commit_sha"
     cd ..
 
-    echo_version sdk "$sdk_version" > dotnet-versions
+    echo_version sdk "$sdk_version" >dotnet-versions
     git add sdk
-
+    #shellcheck disable=SC2034
     for repo in "${repos[@]}"; do
-        IFS=: read -r path name dep should_checkout <<< "$repo"
+        IFS=: read -r path name dep should_checkout <<<"$repo"
         if $should_checkout; then
             sha=$(grep -A3 "\"path\": \"$path\"" dotnet/src/source-manifest.json | grep '"commitSha"' | awk -F'"' '{print $4}')
             cd "$path"
@@ -142,14 +143,14 @@ if $all_dotnet_component_versions_same; then
             git add "$path"
         fi
         version_var="${path}_version"
-        echo_version "$path" "${!version_var}" >> dotnet-versions
+        echo_version "$path" "${!version_var}" >>dotnet-versions
     done
 else
     cd sdk
     # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
     # installer_commit="c8d103ed3c46cca9bb78098da723037e2be73bce" installer_version="8.0.100-alpha.1.23061.8"
     if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
-       [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
+        [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
         sdk_sha=${BASH_REMATCH[1]}
         sdk_version=${BASH_REMATCH[2]}
         git fetch --tags
@@ -159,7 +160,7 @@ else
         git checkout --force "v$sdk_version"
     fi
     cd ..
-    echo_version sdk "$sdk_version" > dotnet-versions
+    echo_version sdk "$sdk_version" >dotnet-versions
     git add sdk
     for repo in "${repos[@]}"; do
         IFS=: read -r -a path_name <<<"$repo"
@@ -204,4 +205,3 @@ fi
 git add dotnet-versions
 git commit --allow-empty --message="v$sdk_version" --signoff
 git tag "v$sdk_version"
-

@@ -185,16 +185,15 @@ function build_sdk {
     fi
     pushd sdk
     if git merge-base --is-ancestor e6ec23d HEAD; then
-            sdk_build_flags+=("/p:TargetArchitecture=$ARCH")
+        sdk_build_flags+=("/p:TargetArchitecture=$ARCH")
     else
-            sdk_build_flags+=("/p:Architecture=$ARCH")
+        sdk_build_flags+=("/p:Architecture=$ARCH")
     fi
     if git merge-base --is-ancestor 5a42929 HEAD; then
-            sdk_build_flags+=("/p:MicrosoftAspNetCoreAppRefPackageVersion=$aspnetcore_version"
-    			      "/p:MicrosoftNETCoreAppRefPackageVersion=$runtime_version"
-		      	      "/p:MicrosoftAspNetCoreAppRefInternalPackageVersion=$aspnetcore_internal_version"
-			      "/p:MicrosoftNETCorePlatformsPackageVersion=$runtime_version")
-    
+        sdk_build_flags+=("/p:MicrosoftAspNetCoreAppRefPackageVersion=$aspnetcore_version"
+            "/p:MicrosoftNETCoreAppRefPackageVersion=$runtime_version"
+            "/p:MicrosoftAspNetCoreAppRefInternalPackageVersion=$aspnetcore_internal_version"
+            "/p:MicrosoftNETCorePlatformsPackageVersion=$runtime_version")
     fi
     if [ -z ${SKIP_BUILD_SDK+x} ] && [ ! -e .skip-build ]; then
         ./build.sh "${sdk_build_flags[@]}"
