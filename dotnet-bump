@@ -80,7 +80,7 @@ manifest=$(curl -L "$url")
 mapfile -t commits < <(echo "$manifest" | grep -oE '(_commit="|sdk:)[0-9a-f]+' | grep -oE '[0-9a-f]+$')
 all_dotnet_component_versions_same=false
 if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
-    [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
+   [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
     all_match=true
     ref=${commits[0]}
     for c in "${commits[@]}"; do
@@ -143,14 +143,14 @@ if $all_dotnet_component_versions_same; then
             git add "$path"
         fi
         version_var="${path}_version"
-        echo_version "$path" "${!version_var}" >>dotnet-versions
+        echo_version "$path" "${!version_var}" >> dotnet-versions
     done
 else
     cd sdk
     # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
     # installer_commit="c8d103ed3c46cca9bb78098da723037e2be73bce" installer_version="8.0.100-alpha.1.23061.8"
     if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
-        [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
+       [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
         sdk_sha=${BASH_REMATCH[1]}
         sdk_version=${BASH_REMATCH[2]}
         git fetch --tags
@@ -160,7 +160,7 @@ else
         git checkout --force "v$sdk_version"
     fi
     cd ..
-    echo_version sdk "$sdk_version" >dotnet-versions
+    echo_version sdk "$sdk_version" > dotnet-versions
     git add sdk
     for repo in "${repos[@]}"; do
         IFS=: read -r -a path_name <<<"$repo"
@@ -175,7 +175,7 @@ else
             cd ..
             git add "${path_name[0]}"
         fi
-        echo_version "${path_name[0]}" "$version" >>dotnet-versions
+        echo_version "${path_name[0]}" "$version" >> dotnet-versions
     done
 fi
 
@@ -200,7 +200,7 @@ fi
         runtime_version_label \
         runtime/eng/Versions.props \
         PreReleaseVersionLabel
-} >>dotnet-versions
+} >> dotnet-versions
 
 git add dotnet-versions
 git commit --allow-empty --message="v$sdk_version" --signoff
