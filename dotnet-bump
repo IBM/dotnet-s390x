@@ -143,7 +143,7 @@ if $all_dotnet_component_versions_same; then
             git add "$path"
         fi
         version_var="${path}_version"
-        echo_version "$path" "${!version_var}" >> dotnet-versions
+        echo_version "$path" "${!version_var}" >>dotnet-versions
     done
 else
     cd sdk
@@ -160,7 +160,7 @@ else
         git checkout --force "v$sdk_version"
     fi
     cd ..
-    echo_version sdk "$sdk_version" > dotnet-versions
+    echo_version sdk "$sdk_version" >dotnet-versions
     git add sdk
     for repo in "${repos[@]}"; do
         IFS=: read -r -a path_name <<<"$repo"
@@ -175,7 +175,7 @@ else
             cd ..
             git add "${path_name[0]}"
         fi
-        echo_version "${path_name[0]}" "$version" >> dotnet-versions
+        echo_version "${path_name[0]}" "$version" >>dotnet-versions
     done
 fi
 
@@ -200,7 +200,7 @@ fi
         runtime_version_label \
         runtime/eng/Versions.props \
         PreReleaseVersionLabel
-} >> dotnet-versions
+} >>dotnet-versions
 
 git add dotnet-versions
 git commit --allow-empty --message="v$sdk_version" --signoff
