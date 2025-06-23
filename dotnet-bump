@@ -80,7 +80,7 @@ manifest=$(curl -L "$url")
 mapfile -t commits < <(echo "$manifest" | grep -oE '(_commit="|sdk:)[0-9a-f]+' | grep -oE '[0-9a-f]+$')
 all_dotnet_component_versions_same=false
 if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
-   [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
+    [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
     all_match=true
     ref=${commits[0]}
     for c in "${commits[@]}"; do
@@ -150,7 +150,7 @@ else
     # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
     # installer_commit="c8d103ed3c46cca9bb78098da723037e2be73bce" installer_version="8.0.100-alpha.1.23061.8"
     if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
-       [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
+        [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
         sdk_sha=${BASH_REMATCH[1]}
         sdk_version=${BASH_REMATCH[2]}
         git fetch --tags
