@@ -99,8 +99,10 @@ function build_runtime {
             cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostPolicy.$runtime_version.nupkg" "$OUTPUTDIR"
             cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.DotNetHostResolver.$runtime_version.nupkg" "$OUTPUTDIR"
         fi
-        cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version.nupkg" "$OUTPUTDIR"
-        cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version.nupkg" "$OUTPUTDIR"
+        if [ "$(grep -oP '<PreReleaseVersionLabel>\K[^<]+' eng/Versions.props)" != "servicing" ] || git merge-base --is-ancestor bb5f473 HEAD; then
+            cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILAsm.$runtime_version.nupkg" "$OUTPUTDIR"
+            cp "artifacts/packages/$runtime_conf/Shipping/runtime.linux-$ARCH.Microsoft.NETCore.ILDAsm.$runtime_version.nupkg" "$OUTPUTDIR"
+        fi
         if [ "$ARCH" = s390x ]; then
             tar -C artifacts/obj/mono/[Ll]inux."$ARCH"."$runtime_conf"/out/lib -czf "$OUTPUTDIR"/libmono-profiler-log-"$ARCH".tar.gz libmono-profiler-log.so
         fi
@@ -192,8 +194,14 @@ function build_sdk {
     if git merge-base --is-ancestor 5a42929 HEAD; then
         sdk_build_flags+=("/p:MicrosoftAspNetCoreAppRefPackageVersion=$aspnetcore_version"
             "/p:MicrosoftNETCoreAppRefPackageVersion=$runtime_version"
-            "/p:MicrosoftAspNetCoreAppRefInternalPackageVersion=$aspnetcore_internal_version"
-            "/p:MicrosoftNETCorePlatformsPackageVersion=$runtime_version")
+            "/p:MicrosoftAspNetCoreAppRefInternalPackageVersion=$aspnetcore_internal_version")
+    else
+        sdk_build_flags+=("/p:MicrosoftNETCoreAppRuntimewinx64PackageVersion=$runtime_version"
+            "/p:MicrosoftNETCoreAppHostwinx64PackageVersion=$runtime_version"
+            "/p:MicrosoftAspNetCoreAppRuntimewinx64PackageVersion=$aspnetcore_version")
+    fi
+    if [ "$runtime_major_version" -gt 9 ]; then
+        sdk_build_flags+=("/p:MicrosoftNETCorePlatformsPackageVersion=$runtime_version")
     fi
     if [ -z ${SKIP_BUILD_SDK+x} ] && [ ! -e .skip-build ]; then
         ./build.sh "${sdk_build_flags[@]}"
@@ -237,10 +245,11 @@ function build_aspnetcore {
     fi
     pushd aspnetcore
     if [ "$runtime_major_version" -gt 9 ]; then
-        aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRefVersion=$runtime_version")
-
-    else
-        aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRuntimeVersion=$runtime_version")
+        if git merge-base --is-ancestor c23abd6 HEAD; then
+            aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRefVersion=$runtime_version")
+        else
+            aspnetcore_build_flags+=("/p:MicrosoftNETCoreAppRuntimeVersion=$runtime_version")
+        fi
     fi
 
     if [ -z ${SKIP_BUILD_ASPNETCORE+x} ] && [ ! -e .skip-build ]; then
