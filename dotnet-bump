@@ -180,15 +180,22 @@ else
 fi
 
 {
+    cd aspnetcore
+    if git merge-base --is-ancestor b73a3fb HEAD; then
+        version_file="aspnetcore/eng/Version.Details.props"
+    else
+        version_file="aspnetcore/eng/Versions.props"
+    fi
+    cd ..
     echo_property \
         aspnetcore_transport_version \
-        aspnetcore/eng/Versions.props \
+        "$version_file" \
         MicrosoftNETCoreBrowserDebugHostTransportVersion
 
     if $all_dotnet_component_versions_same; then
         echo_property \
             aspnetcore_runtime_version \
-            aspnetcore/eng/Versions.props \
+            "$version_file" \
             MicrosoftNETCoreAppRefVersion
     else
         echo_property \
