@@ -56,6 +56,10 @@ function build_runtime {
             "/p:ContinuousIntegrationBuild=true"
             "/p:OfficialBuildId=$runtime_build_id"
         )
+    else
+        runtime_build_flags+=(
+            "/p:StabilizePackageVersion=true"
+        )
     fi
     if "$CROSS"; then
         runtime_build_flags+=(
@@ -178,6 +182,10 @@ function build_sdk {
             "/p:ContinuousIntegrationBuild=true"
             "/p:OfficialBuildId=$sdk_build_id"
         )
+    else
+        sdk_build_flags+=(
+            "/p:StabilizePackageVersion=true"
+        )
     fi
     if [ "$runtime_flavor" = Mono ]; then
         sdk_build_flags+=("/p:DISABLE_CROSSGEN=true")
@@ -201,7 +209,7 @@ function build_sdk {
             "/p:MicrosoftAspNetCoreAppRuntimewinx64PackageVersion=$aspnetcore_version")
     fi
     if [ "$runtime_major_version" -gt 9 ]; then
-        sdk_build_flags+=("/p:MicrosoftNETCorePlatformsPackageVersion=$runtime_version")
+        sdk_build_flags+=("/p:MicrosoftNETCorePlatformsPackageVersion=$aspnetcore_transport_version")
     fi
     if [ -z ${SKIP_BUILD_SDK+x} ] && [ ! -e .skip-build ]; then
         ./build.sh "${sdk_build_flags[@]}"
@@ -235,6 +243,10 @@ function build_aspnetcore {
         aspnetcore_build_flags+=(
             "/p:ContinuousIntegrationBuild=true"
             "/p:OfficialBuildId=$aspnetcore_build_id"
+        )
+    else
+        aspnetcore_build_flags+=(
+            "p/:StabilizePackageVersion=true"
         )
     fi
     if [ "$aspnetcore_version_suffix" != "" ]; then
