@@ -56,10 +56,10 @@ function build_runtime {
             "/p:ContinuousIntegrationBuild=true"
             "/p:OfficialBuildId=$runtime_build_id"
         )
-    else                                                                                                                                
-        runtime_build_flags+=(                                                                                                          
-            "/p:StabilizePackageVersion=true"                                                                                           
-        )                                                                                                                               
+    else
+        runtime_build_flags+=(
+            "/p:StabilizePackageVersion=true"
+        )
     fi
     if "$CROSS"; then
         runtime_build_flags+=(
