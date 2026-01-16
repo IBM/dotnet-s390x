@@ -22,7 +22,7 @@ EXEC : error : Failed to load assembly 'System.Private.CoreLib'
 -#}
 {%- set arches = ['ppc64le', 's390x'] %}
 
-{%- set projects = ['runtime', 'msbuild', 'roslyn', 'aspnetcore', 'sdk'] %}
+{%- set projects = ['sdk'] %}
 
 {%- set matrix -%}
     strategy:
@@ -74,9 +74,9 @@ jobs:
         name: {{ projects[i - 1] }}-{% raw %}${{ matrix.arch }}{% endraw %}
     {%- endif %}
     - name: Prepare
-      run: ./dotnet-prepare {{ projects[i] }}
+      run: ./dotnet-prepare 
     - name: Build
-      run: ARCH={% raw %}${{ matrix.arch }}{% endraw %} ./docker/run-image {{ image }} ./dotnet-build {{ projects[i] }}
+      run: ARCH={% raw %}${{ matrix.arch }}{% endraw %} ./docker/run-image {{ image }} ./dotnet-build 
     - name: Upload the intermediate results
       uses: actions/upload-artifact@v4
       with:

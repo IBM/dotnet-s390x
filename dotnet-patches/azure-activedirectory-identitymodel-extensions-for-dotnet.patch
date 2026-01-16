@@ -1,0 +1,29 @@
+diff --git a/src/source-build-externals/src/repos/src/azure-activedirectory-identitymodel-extensions-for-dotnet/build/common.props b/src/source-build-externals/src/repos/src/azure-activedirectory-identitymodel-extensions-for-dotnet/build/common.props
+index efd7e90e2f4..901d7611f69 100644
+--- a/src/source-build-externals/src/repos/src/azure-activedirectory-identitymodel-extensions-for-dotnet/build/common.props
++++ b/src/source-build-externals/src/repos/src/azure-activedirectory-identitymodel-extensions-for-dotnet/build/common.props
+@@ -42,7 +42,22 @@
+     <VersionSuffix Condition="'$(WilsonVersion)' == ''">$(PreviewVersionSuffix)</VersionSuffix>
+     <VersionPrefix Condition="'$(WilsonVersion)' == ''">$(WilsonCurrentVersion)</VersionPrefix>
+     <FileVersion Condition="'$(WilsonVersion)' != '' and '$(IsCustomPreview)' != 'true' ">$(WilsonVersion).$([System.DateTime]::Now.AddYears(-2019).Year)$([System.DateTime]::Now.ToString("MMdd"))</FileVersion>
+-    <FileVersion Condition="'$(WilsonVersion)' == ''">$(WilsonCurrentVersion).$([System.DateTime]::Now.AddYears(-2019).Year)$([System.DateTime]::Now.ToString("MMdd"))</FileVersion>
++    <FileVersion Condition="'$(WilsonVersion)' == ''">$(WilsonCurrentVersion).$([MSBuild]::Add(
++      61232,
++      $([MSBuild]::Add(
++        $([MSBuild]::Add(
++          $([MSBuild]::Multiply(
++            $([System.DateTime]::Now.AddYears(-2019).Year),
++            416
++          )),
++          $([MSBuild]::Multiply(
++            $([System.DateTime]::Now.ToString("MM")),
++            32
++          ))
++        )),
++        $([System.DateTime]::Now.ToString("dd"))
++      ))
++    ))</FileVersion>
+   </PropertyGroup>
+
+   <PropertyGroup>
+
