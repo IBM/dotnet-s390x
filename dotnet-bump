@@ -19,10 +19,12 @@ function echo_version {
         short_date=$(echo "$version_suffix" | cut -d- -f2)
         if [ "$short_date" == "$version_suffix" ]; then
             short_date=$(echo "$version_suffix" | rev | cut -d. -f2 | rev)
-            revision=$(echo "$version_suffix" | rev | cut -d. -f1 | rev | sed 's/^10//')
+            revision=$(echo "$version_suffix" | rev | cut -d. -f1 | rev)
         else
-            revision=$(echo "$version_suffix" | rev | cut -d. -f1 | rev | sed 's/^10//')
+            revision=$(echo "$version_suffix" | cut -d- -f3)
         fi
+        #Subtracting 100 from the revision number to match the offical build id format of Microsoft.(added during the build process automatically)
+        revision=$((revision - 100))
         yy=$((short_date / 1000))
         mm=$(((short_date - 1000 * yy) / 50))
         dd=$((short_date - 1000 * yy - 50 * mm))
@@ -33,7 +35,7 @@ function echo_version {
     fi
 }
 
-platform=10.0.1xx
+platform=11.0.1xx
 while [ $# -gt 0 ]; do
     case "$1" in
     --platform)
@@ -51,8 +53,13 @@ if [ $# -gt 0 ]; then
     sdk_version=$1
     shift
 fi
-git submodule update --init --recursive
 
+(($(echo "$sdk_version" | cut -d. -f1) >= 10)) || {
+    echo "SDK version less than 10 not supported"
+    exit 0
+}
+
+git submodule update --init --recursive
 if [[ -z "${sdk_version+x}" ]]; then
     url="https://aka.ms/dotnet/$platform/daily/productCommit-linux-x64.txt"
 else

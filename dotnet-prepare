@@ -4,30 +4,32 @@ set -e -u -x -o pipefail
 filter=()
 if git -C "$(dirname "$0")" fetch --filter=tree:0 >/dev/null 2>&1; then
     # shellcheck disable=SC2034
-    clone_filter=(--filter=tree:0)
+    filter=(--filter=tree:0)
 fi
-function backport {
-    local fixes=$1
-    local commitids=$2
 
-    if [ -n "$fixes" ] && git merge-base --is-ancestor "$fixes" HEAD; then
+function backport {
+    # Commit that introduced the bug, or an empty string.
+    fixes=$1
+    # Commit or patch that fixes the bug, optionally followed by backported or
+    # conflicting commits.
+    commitids=$2
+    if [ -n "$fixes" ] && ! git merge-base --is-ancestor "$fixes" HEAD; then
         return
     fi
-
     for commitid in $commitids; do
-        # Skip if already applied
+        if [ -e "$commitid" ]; then
+            continue
+        fi
         if git merge-base --is-ancestor "$commitid" HEAD; then
             return
         fi
     done
-
-    # Clean up any previous failed cherry-pick
-    if [ -f .git/CHERRY_PICK_HEAD ]; then
-        git cherry-pick --abort || true
-    fi
-
     for commitid in $commitids; do
-        git cherry-pick -X theirs "$commitid" --no-edit --no-commit
+        if [ -e "$commitid" ]; then
+            git am "$commitid"
+        else
+            git cherry-pick "$commitid"
+        fi
         break
     done
 }
