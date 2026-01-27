@@ -3,18 +3,17 @@ set -e -u -x
 cd "$(dirname "$0")"
 
 function echo_version {
-    local name=$1
-    local version=$2
+    local version=$1
 
-    echo "${name}_version=$version"
+    echo "sdk_version=$version"
     version_prefix=$(echo "$version" | cut -d- -f1)
-    echo "${name}_version_prefix=$version_prefix"
+    echo "sdk_version_prefix=$version_prefix"
     version_suffix=$(echo "$version" | cut -d- -f2- -s)
-    echo "${name}_version_suffix=$version_suffix"
+    echo "sdk_version_suffix=$version_suffix"
     major_version=$(echo "$version_prefix" | cut -d. -f1)
-    echo "${name}_major_version=$major_version"
+    echo "sdk_major_version=$major_version"
     minor_version=$(echo "$version_prefix" | cut -d. -f2)
-    echo "${name}_minor_version=$minor_version"
+    echo "sdk_minor_version=$minor_version"
 
     if [ -n "$version_suffix" ]; then
         short_date=$(echo "$version_suffix" | cut -d- -f2)
@@ -24,31 +23,19 @@ function echo_version {
         else
             revision=$(echo "$version_suffix" | cut -d- -f3)
         fi
+        #Subtracting 100 from the revision number to match the offical build id format of Microsoft.(added during the build process automatically)
+        revision=$((revision - 100))
         yy=$((short_date / 1000))
         mm=$(((short_date - 1000 * yy) / 50))
         dd=$((short_date - 1000 * yy - 50 * mm))
-        echo -n "${name}_build_id="
+        echo -n "OFFICIAL_BUILD_ID="
         printf "20%02d%02d%02d.%s\n" "$yy" "$mm" "$dd" "$revision"
     else
-        echo "${name}_build_id="
+        echo "OFFICIAL_BUILD_ID="
     fi
 }
 
-function echo_property {
-    local name=$1
-    local path=$2
-    local property=$3
-
-    value=$(xmllint --xpath "/Project/PropertyGroup/${property}/text()" "$path")
-    # shellcheck disable=SC2016
-    if [ "${value:0:2}" = '$(' ] && [ "${value:${#value}-1}" = ')' ]; then
-        echo_property "$name" "$path" "${value:2:-1}"
-    else
-        echo "$name=$value"
-    fi
-}
-
-platform=10.0.1xx
+platform=11.0.1xx
 while [ $# -gt 0 ]; do
     case "$1" in
     --platform)
@@ -66,6 +53,12 @@ if [ $# -gt 0 ]; then
     sdk_version=$1
     shift
 fi
+
+(($(echo "$sdk_version" | cut -d. -f1) >= 10)) || {
+    echo "SDK version less than 10 not supported"
+    exit 0
+}
+
 git submodule update --init --recursive
 if [[ -z "${sdk_version+x}" ]]; then
     url="https://aka.ms/dotnet/$platform/daily/productCommit-linux-x64.txt"
@@ -77,138 +70,26 @@ else
 fi
 
 manifest=$(curl -L "$url")
-mapfile -t commits < <(echo "$manifest" | grep -oE '(_commit="|sdk:)[0-9a-f]+' | grep -oE '[0-9a-f]+$')
-all_dotnet_component_versions_same=false
+pushd dotnet
 if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
     [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
-    all_match=true
-    ref=${commits[0]}
-    for c in "${commits[@]}"; do
-        if [[ "$c" != "$ref" ]]; then
-            all_match=false
-            break
-        fi
-    done
-    $all_match && all_dotnet_component_versions_same=true
+    sdk_sha=${BASH_REMATCH[1]}
+    sdk_version=${BASH_REMATCH[2]}
+    git fetch --all --tags
+    git checkout --force "$sdk_sha"
 else
-    major=$(echo "$sdk_version" | cut -d. -f1)
-    if ((major >= 10)); then
-        echo "SDK not published."
-        exit 1
-    fi
-fi
-repos=(
-    runtime:sdk:Microsoft.NETCore.App.Ref:true
-    msbuild:sdk:Microsoft.Build:true
-    roslyn:sdk:Microsoft.Net.Compilers.Toolset:true
-    #sdk:sdk:Microsoft.NET.Sdk:true
-    aspnetcore:sdk:Microsoft.AspNetCore.App.Ref:true
-    aspnetcore_internal:sdk:Microsoft.AspNetCore.App.Ref.Internal:false
-    templating:sdk:Microsoft.TemplateEngine.Abstractions:true
-)
-if $all_dotnet_component_versions_same; then
-    cd dotnet
     git fetch --tags
-    git checkout "$ref"
-    commit_sha=$(grep -A3 '"path": "sdk"' src/source-manifest.json | grep -oP '"commitSha":\s*"\K[^"]+')
-    sdk_version=$(echo "$manifest" | grep -oP 'sdk_version="\K[^"]+')
-    runtime_version=$(echo "$manifest" | grep -oP 'runtime_version="\K[^"]+')
-    aspnetcore_version=$(echo "$manifest" | grep -oP 'aspnetcore_version="\K[^"]+')
-    templating_version=$sdk_version
-    echo "runtime_version: $runtime_version, templating_version: $templating_version"
-
-    cd ..
-
-    xpath="string(/Dependencies/ProductDependencies/Dependency[@Name='Microsoft.Build']/@Version)"
-    msbuild_version=$(xmllint --xpath "$xpath" sdk/eng/Version.Details.xml)
-    roslyn_version=$sdk_version
-    aspnetcore_internal_version=$aspnetcore_version
-    echo "msbuild_version: $msbuild_version, roslyn_version: $roslyn_version, aspnetcore_internal_version: $aspnetcore_internal_version"
-    cd sdk
-    git fetch --tags
-    git checkout --force "$commit_sha"
-    cd ..
-
-    echo_version sdk "$sdk_version" >dotnet-versions
-    git add sdk
-    #shellcheck disable=SC2034
-    for repo in "${repos[@]}"; do
-        IFS=: read -r path name dep should_checkout <<<"$repo"
-        if $should_checkout; then
-            sha=$(grep -A3 "\"path\": \"$path\"" dotnet/src/source-manifest.json | grep '"commitSha"' | awk -F'"' '{print $4}')
-            cd "$path"
-            git fetch --tags
-            git checkout --force "$sha"
-            cd ..
-            git add "$path"
-        fi
-        version_var="${path}_version"
-        echo_version "$path" "${!version_var}" >>dotnet-versions
-    done
-else
-    cd sdk
-    # installer:e0c95ad21e5eac311e454c65335008161b3e4763, 7.0.103
-    # installer_commit="c8d103ed3c46cca9bb78098da723037e2be73bce" installer_version="8.0.100-alpha.1.23061.8"
-    if [[ "$manifest" =~ sdk:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
-        [[ "$manifest" =~ sdk_commit=\"([0-9a-f]+)\"\ sdk_version=\"([^\"]+)\" ]]; then
-        sdk_sha=${BASH_REMATCH[1]}
-        sdk_version=${BASH_REMATCH[2]}
-        git fetch --tags
-        git checkout --force "$sdk_sha"
-    else
-        git fetch --tags
-        git checkout --force "v$sdk_version"
-    fi
-    cd ..
-    echo_version sdk "$sdk_version" >dotnet-versions
-    git add sdk
-    for repo in "${repos[@]}"; do
-        IFS=: read -r -a path_name <<<"$repo"
-        xpath="string(/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[2]}\"]/@Version)"
-        version=$(xmllint --xpath "$xpath" "${path_name[1]}"/eng/Version.Details.xml)
-        if "${path_name[3]}"; then
-            cd "${path_name[0]}"
-            git fetch --tags
-            xpath="/Dependencies/ProductDependencies/Dependency[@Name=\"${path_name[2]}\"]/Sha/text()"
-            sha=$(xmllint --xpath "$xpath" ../"${path_name[1]}"/eng/Version.Details.xml)
-            git checkout --force "$sha"
-            cd ..
-            git add "${path_name[0]}"
-        fi
-        echo_version "${path_name[0]}" "$version" >>dotnet-versions
-    done
+    git checkout --force "v$sdk_version"
 fi
+if [[ "$manifest" =~ runtime:([0-9a-f]+),\ ([^[:space:]]+) ]] ||
+    [[ "$manifest" =~ runtime_commit=\"[0-9a-f]+\"\ runtime_version=\"([^\"]+)\" ]]; then
+    runtime_version="${BASH_REMATCH[2]:-${BASH_REMATCH[1]}}"
+fi
+popd
 
-{
-    cd aspnetcore
-    if git merge-base --is-ancestor b73a3fb HEAD; then
-        version_file="aspnetcore/eng/Version.Details.props"
-    else
-        version_file="aspnetcore/eng/Versions.props"
-    fi
-    cd ..
-    echo_property \
-        aspnetcore_transport_version \
-        "$version_file" \
-        MicrosoftNETCoreBrowserDebugHostTransportVersion
-
-    if $all_dotnet_component_versions_same; then
-        echo_property \
-            aspnetcore_runtime_version \
-            "$version_file" \
-            MicrosoftNETCoreAppRefVersion
-    else
-        echo_property \
-            aspnetcore_runtime_version \
-            aspnetcore/eng/Versions.props \
-            MicrosoftNETCoreAppRuntimeVersion
-    fi
-    echo_property \
-        runtime_version_label \
-        runtime/eng/Versions.props \
-        PreReleaseVersionLabel
-} >>dotnet-versions
-
+echo "runtime_version=$runtime_version" >dotnet-versions
+echo_version "$sdk_version" >>dotnet-versions
+git add dotnet
 git add dotnet-versions
 git commit --allow-empty --message="v$sdk_version" --signoff
 git tag "v$sdk_version"
