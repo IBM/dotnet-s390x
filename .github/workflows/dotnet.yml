@@ -43,8 +43,8 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Install quilt
       run: |
-        sudo apt update
-        sudo apt install -y quilt
+        sudo apt-get update
+        sudo apt-get install -y quilt
     - name: Prepare
       run: ./dotnet-prepare 
     - name: Build

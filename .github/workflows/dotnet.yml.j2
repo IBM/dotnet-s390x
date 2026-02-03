@@ -73,6 +73,10 @@ jobs:
       with:
         name: {{ projects[i - 1] }}-{% raw %}${{ matrix.arch }}{% endraw %}
     {%- endif %}
+    - name: Install quilt
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y quilt
     - name: Prepare
       run: ./dotnet-prepare 
     - name: Build
