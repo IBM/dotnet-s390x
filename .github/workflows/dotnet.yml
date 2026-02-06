@@ -46,7 +46,13 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y quilt
     - name: Prepare
-      run: ./dotnet-prepare 
+      run: ./dotnet-prepare
+    - name: Install CMake
+      run: |
+        wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1-linux-x86_64.sh
+        chmod +x cmake-3.28.1-linux-x86_64.sh
+        sudo ./cmake-3.28.1-linux-x86_64.sh --skip-license --prefix=/usr/local
+        cmake --version
     - name: Build
       run: ARCH=${{ matrix.arch }} ./docker/run-image ghcr.io/ibm/dotnet-${{ matrix.arch }}-toolchain:latest ./dotnet-build 
     - name: Upload the intermediate results
