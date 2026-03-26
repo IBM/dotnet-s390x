@@ -1,7 +1,7 @@
-runtime_version=11.0.0-preview.3.26170.106
-sdk_version=11.0.100-preview.3.26170.106
-sdk_version_prefix=11.0.100
-sdk_version_suffix=preview.3.26170.106
-sdk_major_version=11
+runtime_version=10.0.4
+sdk_version=10.0.104
+sdk_version_prefix=10.0.104
+sdk_version_suffix=
+sdk_major_version=10
 sdk_minor_version=0
-OFFICIAL_BUILD_ID=20260320.6
+OFFICIAL_BUILD_ID=
