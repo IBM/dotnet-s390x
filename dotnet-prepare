@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e -u -x -o pipefail
 
+BASEDIR=$(cd "$(dirname "$0")" && pwd)
 filter=()
 if git -C "$(dirname "$0")" fetch --filter=tree:0 >/dev/null 2>&1; then
     filter=(--filter=tree:0)
@@ -64,6 +65,9 @@ function prepare_sdk {
         backport "" e64f84d
         backport 58d1b48 eb2c106
         backport e3357f6 a5d3b22
+	if ! git merge-base --is-ancestor 5fbaa71aaff1e8acfcedb1c69a521f4708050b54 HEAD 2>/dev/null; then
+   	    git am --3way "$BASEDIR/dotnet-patches/5fbaa71-streamline-arch-arg.patch"
+	fi
     fi
     popd
 }
