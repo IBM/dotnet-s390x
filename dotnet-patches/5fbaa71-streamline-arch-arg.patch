@@ -5,15 +5,15 @@ Subject: [PATCH] [S390X] fix utf8->utf16 conversion test case failures (#129789)
 
 Co-authored-by: Adeel <3840695+am11@users.noreply.github.com>
 ---
- src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp | 17 +++++++++++++++
- src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp | 21 +++++++++++++++++++
- src/native/minipal/utf8.c                                                       | 15 ++++++-------
+ src/runtime/src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp | 17 +++++++++++++++
+ src/runtime/src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp | 21 +++++++++++++++++++
+ src/runtime/src/native/minipal/utf8.c                                                       | 15 ++++++-------
  3 files changed, 44 insertions(+), 9 deletions(-)
 
-diff --git a/src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp b/src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp
+diff --git a/src/runtime/src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp b/src/runtime/src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp
 index 53a45ed008a491..39bdbb1a11d0f0 100644
---- a/src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp
-+++ b/src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp
+--- a/src/runtime/src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp
++++ b/src/runtime/src/coreclr/pal/tests/palsuite/locale_info/MultiByteToWideChar/test4/test4.cpp
 @@ -224,6 +224,23 @@ PALTEST(locale_info_MultiByteToWideChar_test4_paltest_multibytetowidechar_test4,
          free(wideBuffer);
      }
@@ -38,10 +38,10 @@ index 53a45ed008a491..39bdbb1a11d0f0 100644
  #if BIGENDIAN
      {
          const char* ascii = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456";
-diff --git a/src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp b/src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp
+diff --git a/src/runtime/src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp b/src/runtime/src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp
 index 697730b9dbd026..115faf95bfd2d3 100644
---- a/src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp
-+++ b/src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp
+--- a/src/runtime/src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp
++++ b/src/runtime/src/coreclr/pal/tests/palsuite/locale_info/WideCharToMultiByte/test5/test5.cpp
 @@ -148,6 +148,27 @@ PALTEST(locale_info_WideCharToMultiByte_test5_paltest_widechartomultibyte_test5,
          free(utf8Buffer);
      }
@@ -70,10 +70,10 @@ index 697730b9dbd026..115faf95bfd2d3 100644
  #if BIGENDIAN
      {
          const char* expected = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456";
-diff --git a/src/native/minipal/utf8.c b/src/native/minipal/utf8.c
+diff --git a/src/runtime/src/native/minipal/utf8.c b/src/runtime/src/native/minipal/utf8.c
 index e0b25fce415473..c1a3d3b9d37a31 100644
---- a/src/native/minipal/utf8.c
-+++ b/src/native/minipal/utf8.c
+--- a/src/runtime/src/native/minipal/utf8.c
++++ b/src/runtime/src/native/minipal/utf8.c
 @@ -983,7 +983,7 @@ static size_t GetChars(UTF8Encoding* self, unsigned char* bytes, size_t byteCoun
          }
  #if BIGENDIAN
