@@ -95,12 +95,18 @@ build_sdk() {
 
     if [[ "$use_custom_sdk" == true ]]; then
         SDKDIR="$BASEDIR/.bootstrap-sdk"
-        if [[ ! -x "$SDKDIR/dotnet" ]]; then
+        (
+            sdk_temp_dir=$(mktemp -d "$BASEDIR/.bootstrap-sdk.XXXXXX")
+            trap 'rm -rf "$sdk_temp_dir"' EXIT
             echo "Extracting bootstrap SDK..."
+            tar -xzf "$SDKTARPATH" -C "$sdk_temp_dir"
+            if [[ ! -f "$sdk_temp_dir/dotnet" || ! -x "$sdk_temp_dir/dotnet" ]]; then
+                echo "SDK archive '$SDKTARPATH' does not contain an executable dotnet" >&2
+                exit 1
+            fi
             rm -rf "$SDKDIR"
-            mkdir -p "$SDKDIR"
-            tar -xzf "$SDKTARPATH" -C "$SDKDIR"
-        fi
+            mv "$sdk_temp_dir" "$SDKDIR"
+        )
         sdk_build_flags+=(--with-sdk "$SDKDIR")
     fi
 
