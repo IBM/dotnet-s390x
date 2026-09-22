@@ -29,6 +29,7 @@ esac
 
 use_custom_packages=false
 use_custom_sdk=false
+shared_tarball=
 run_prep=true
 
 while [[ $# -gt 0 ]]; do
@@ -45,6 +46,10 @@ while [[ $# -gt 0 ]]; do
     --with-sdk)
         use_custom_sdk=true
         SDKTARPATH="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
+        shift 2
+        ;;
+    --with-shared-components)
+        shared_tarball="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
         shift 2
         ;;
     --no-prep)
@@ -75,9 +80,14 @@ build_sdk() {
             --arch "$ARCH"
         )
     fi
+    sdk_version=$(awk -F'=' '$1=="sdk_version" {print $2}' ./dotnet-versions)
+    sdk_major_version=$(echo "$sdk_version" | cut -d '.' -f1)
+    sdk_patch_version=$(echo "$sdk_version" | cut -d '.' -f3)
     if [[ -z "${OFFICIAL_BUILD_ID:-}" ]]; then
         pushd dotnet
         if git merge-base --is-ancestor 44525024595742ebe09023abe709df51de65009b HEAD; then
+            sdk_build_flags+=(--branding release)
+        elif [ "$sdk_major_version" -eq 10 ] && [ "$sdk_patch_version" -ge 200 ]; then
             sdk_build_flags+=(--branding release)
         else
             sdk_build_flags+=(--branding rtm)
@@ -87,6 +97,36 @@ build_sdk() {
 
     if [[ -n "${OFFICIAL_BUILD_ID:-}" ]]; then
         sdk_build_flags+=(-p:OfficialBuildId="$OFFICIAL_BUILD_ID")
+    fi
+
+    shared_dir=
+    if [[ -n "$shared_tarball" ]]; then
+        rm -rf "$BASEDIR/.shared-components"
+        mkdir -p "$BASEDIR/.shared-components"
+        tar -xzf "$shared_tarball" -C "$BASEDIR/.shared-components"
+        shared_dir=$BASEDIR/.shared-components
+    elif [ "$sdk_major_version" -eq 10 ] && [ "$sdk_patch_version" -ge 200 ]; then
+        pin=$(grep -m1 -oP '(?<=<MicrosoftNETSdkPackageVersion>)[^<]*' "$DOTNETDIR/eng/Version.Details.props" || true)
+        ref=$(grep -m1 -oP '(?<=<MicrosoftNETCoreAppRefPackageVersion>)[^<]*' "$DOTNETDIR/eng/Version.Details.props" || true)
+        tag=$(curl -sL "https://builds.dotnet.microsoft.com/dotnet/Sdk/$pin/productCommit-linux-x64.txt" | grep -oP '(?<=sdk_version=")[^"]*' | head -1 || true)
+        if [[ -z "$tag" || -z "$ref" ]]; then
+            echo "Cannot resolve the 1xx build '$pin' this band needs; pass --with-shared-components <tarball>"
+            exit 1
+        fi
+        shared_dir=$BASEDIR/.shared-components-$tag
+        rm -rf "$shared_dir"
+        mkdir -p "$shared_dir"
+        curl -fL "https://builds.dotnet.microsoft.com/dotnet/source-build/Private.SourceBuilt.Artifacts.$pin.centos.10-x64.tar.gz" | tar -xz -C "$shared_dir"
+        rv=$(basename "$shared_dir"/assets/Release/Runtime/*/)
+        (cd "$shared_dir" && curl -fsSL "https://api.github.com/repos/IBM/dotnet-s390x/releases/tags/v$tag" |
+            grep -oP '"browser_download_url": "\K[^"]*' | grep -E "/[^/]*${ARCH}[^/]*\.nupkg$" | xargs -n1 curl -fLO)
+        curl -fLo "$shared_dir/assets/Release/Runtime/$rv/dotnet-runtime-$ref-linux-$ARCH.tar.gz" "https://github.com/IBM/dotnet-s390x/releases/download/v$tag/dotnet-runtime-$ref-linux-$ARCH.tar.gz"
+        mkdir -p "$shared_dir/assets/Release/aspnetcore/Runtime/$rv"
+        curl -fLo "$shared_dir/assets/Release/aspnetcore/Runtime/$rv/aspnetcore-runtime-$ref-linux-$ARCH.tar.gz" "https://github.com/IBM/dotnet-s390x/releases/download/v$tag/dotnet-sdk-$tag-linux-$ARCH.tar.gz"
+    fi
+    if [[ -n "$shared_dir" ]]; then
+        rm -rf "$DOTNETDIR/artifacts"
+        sdk_build_flags+=(--with-shared-components "$shared_dir")
     fi
 
     if [[ "$use_custom_packages" == true ]]; then
@@ -107,25 +147,36 @@ build_sdk() {
     if [[ "$run_prep" == true && "$use_custom_sdk" == false ]]; then
         pushd "$DOTNETDIR"
         ROOTFS_DIR=$(pwd) ./prep-source-build.sh
+        if [[ -n "$shared_dir" ]]; then
+            ref=$(grep -m1 -oP '(?<=<MicrosoftNETCoreAppRefPackageVersion>)[^<]*' eng/Version.Details.props)
+            mkdir -p prereqs/packages/previously-source-built
+            for tool in ilasm ildasm; do
+                pkg=runtime.linux-x64.microsoft.netcore.$tool
+                curl -fLo "prereqs/packages/previously-source-built/$pkg.$ref.nupkg" "https://api.nuget.org/v3-flatcontainer/$pkg/$ref/$pkg.$ref.nupkg"
+            done
+        fi
         popd
     fi
     pushd "$DOTNETDIR"
     mv .git .git.bak
     ROOTFS_DIR=/ ./build.sh "${sdk_build_flags[@]}"
-    mv .git .git.dir.bak
+    rm -rf .git
     mv .git.bak .git
-    cp ./artifacts/assets/Release/Runtime/*/dotnet-runtime-"$runtime_version"-linux-"$ARCH".tar.gz "$OUTPUTDIR"
     cp ./artifacts/assets/Release/Sdk/*/dotnet-sdk-"$sdk_version"-linux-"$ARCH".tar.gz "$OUTPUTDIR"
+    cp ./artifacts/assets/Release/Runtime/*/dotnet-runtime-"$runtime_version"-linux-"$ARCH".tar.gz "$OUTPUTDIR"
+    cp ./artifacts/assets/Release/Private.SourceBuilt.Artifacts."$sdk_version"*.linux-"$ARCH".tar.gz "$OUTPUTDIR"
+    cp ./prereqs/packages/archive/Private.SourceBuilt.Artifacts.Bootstrap.tar.gz "$PACKAGESDIR"
+    if [[ -n "$shared_dir" ]]; then
+        popd
+        exit 0
+    fi
     cp ./artifacts/packages/Release/Shipping/runtime/Microsoft.NETCore.App.Host.linux-"$ARCH"."$runtime_version".nupkg "$OUTPUTDIR"
     cp ./artifacts/packages/Release/Shipping/runtime/Microsoft.NETCore.App.Runtime.linux-"$ARCH"."$runtime_version".nupkg "$OUTPUTDIR"
     cp ./artifacts/packages/Release/Shipping/runtime/runtime.linux-"$ARCH".Microsoft.NETCore.ILDAsm."$runtime_version".nupkg "$OUTPUTDIR"
     cp ./artifacts/packages/Release/Shipping/runtime/runtime.linux-"$ARCH".Microsoft.NETCore.ILDAsm."$runtime_version".nupkg "$OUTPUTDIR"
     cp ./artifacts/packages/Release/Shipping/aspnetcore/Microsoft.AspNetCore.App.Runtime.linux-"$ARCH"."$runtime_version".nupkg "$OUTPUTDIR"
-    cp ./artifacts/assets/Release/Private.SourceBuilt.Artifacts."$sdk_version"*.linux-"$ARCH".tar.gz "$OUTPUTDIR"
-    cp ./prereqs/packages/archive/Private.SourceBuilt.Artifacts.Bootstrap.tar.gz "$PACKAGESDIR"
     popd
 }
-
 projects=(sdk)
 for project in "${projects[@]}"; do
     eval "build_${project}"
