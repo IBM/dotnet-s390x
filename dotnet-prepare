@@ -55,7 +55,12 @@ function backport {
 
 function prepare_sdk {
     pushd dotnet
-    if [[ -s ../dotnet-patches/series ]] &&
+    sdk_version=$(awk -F'=' '$1=="sdk_version" {print $2}' "$BASEDIR/dotnet-versions")
+    sdk_major_version=$(echo "$sdk_version" | cut -d '.' -f1)
+    sdk_patch_version=$(echo "$sdk_version" | cut -d '.' -f3)
+    if [ "$sdk_major_version" -eq 10 ] && [ "$sdk_patch_version" -ge 200 ]; then
+        :
+    elif [[ -s ../dotnet-patches/series ]] &&
         ! git merge-base --is-ancestor "49278fa" HEAD; then
         rm -rf .pc
         ln -fsT ../dotnet-patches patches
