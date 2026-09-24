@@ -1,6 +1,6 @@
-runtime_version=10.0.10
-sdk_version=10.0.302
-sdk_version_prefix=10.0.302
+runtime_version=10.0.12
+sdk_version=10.0.401
+sdk_version_prefix=10.0.401
 sdk_version_suffix=
 sdk_major_version=10
 sdk_minor_version=0
