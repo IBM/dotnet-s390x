@@ -13,3 +13,5 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y shellcheck shfmt
     - name: Lint
       run: ./lint
+    - name: Test build wrapper
+      run: python3 -m unittest discover -s tests -v
